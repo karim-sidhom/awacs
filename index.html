@@ -2,9 +2,17 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>كاشف الاهتزاز 5-10Hz</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>كاشف الاهتزاز</title>
+<meta name="theme-color" content="#020b2e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="كاشف الاهتزاز">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="icon" id="favicon" href="">
+<link rel="apple-touch-icon" id="appleIcon" href="">
+<link rel="manifest" id="manifestLink">
 <style>
   :root{
     --bleu-profond:#020b2e;
@@ -279,6 +287,76 @@ btn.addEventListener('click', () => {
     arreter();
   }
 });
+
+// ===== Mise en place PWA (tout en un seul fichier, sans dépendances externes) =====
+(function initPWA() {
+  // Icône : disque or/bleu roi avec l'onde, en SVG
+  const iconSVG = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+      <defs>
+        <radialGradient id="bg" cx="50%" cy="35%" r="75%">
+          <stop offset="0%" stop-color="#0d1a6e"/>
+          <stop offset="100%" stop-color="#020b2e"/>
+        </radialGradient>
+      </defs>
+      <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+      <circle cx="256" cy="256" r="170" fill="none" stroke="#ffd700" stroke-width="10" opacity="0.5"/>
+      <path d="M 96 256 Q 146 156 196 256 T 296 256 T 396 256" fill="none" stroke="#ffd700" stroke-width="16" stroke-linecap="round"/>
+      <path d="M 96 300 Q 146 200 196 300 T 296 300 T 396 300" fill="none" stroke="#ffe566" stroke-width="10" stroke-linecap="round" opacity="0.7"/>
+    </svg>`;
+  const iconBlob = new Blob([iconSVG], {type: 'image/svg+xml'});
+  const iconURL = URL.createObjectURL(iconBlob);
+  document.getElementById('favicon').href = iconURL;
+  document.getElementById('appleIcon').href = iconURL;
+
+  // Manifest PWA
+  const manifest = {
+    name: "كاشف الاهتزاز",
+    short_name: "كاشف",
+    description: "كاشف اهتزاز 5-5.5Hz عبر حساس الحركة",
+    start_url: ".",
+    display: "standalone",
+    background_color: "#020b2e",
+    theme_color: "#020b2e",
+    orientation: "portrait",
+    icons: [
+      { src: iconURL, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+    ]
+  };
+  const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+  document.getElementById('manifestLink').href = URL.createObjectURL(manifestBlob);
+
+  // Service worker minimal (mise en cache de la page pour usage hors-ligne)
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      const CACHE = 'kachef-ihtizaz-v1';
+      self.addEventListener('install', e => {
+        self.skipWaiting();
+      });
+      self.addEventListener('activate', e => {
+        self.clients.claim();
+      });
+      self.addEventListener('fetch', e => {
+        e.respondWith(
+          caches.open(CACHE).then(cache =>
+            cache.match(e.request).then(resp => {
+              const fetchPromise = fetch(e.request).then(networkResp => {
+                cache.put(e.request, networkResp.clone());
+                return networkResp;
+              }).catch(() => resp);
+              return resp || fetchPromise;
+            })
+          )
+        );
+      });
+    `;
+    const swBlob = new Blob([swCode], {type: 'application/javascript'});
+    const swURL = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swURL).catch(err => {
+      console.warn('Service worker non enregistré:', err);
+    });
+  }
+})();
 </script>
 
 </body>
