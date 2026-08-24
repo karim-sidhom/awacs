@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>كاشف الاهتزاز 5-10Hz</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bleu-profond:#020b2e;
+    --bleu-roi:#0d1a6e;
+    --or:#ffd700;
+    --or-vif:#ffcc00;
+    --or-clair:#ffe566;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    min-height:100vh;
+    background:radial-gradient(circle at 50% 0%, var(--bleu-roi) 0%, var(--bleu-profond) 70%);
+    font-family:'Tajawal', sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    color:#fff;
+    overflow-x:hidden;
+  }
+  .carte{
+    position:relative;
+    width:100%;
+    max-width:500px;
+    background:rgba(13,26,110,0.55);
+    backdrop-filter:blur(14px);
+    border:1px solid rgba(255,215,0,0.35);
+    border-radius:24px;
+    padding:32px 24px;
+    text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+    animation:fadeUp 0.7s cubic-bezier(.22,1,.36,1);
+  }
+  @keyframes fadeUp{
+    from{opacity:0; transform:translateY(24px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .shimmer{
+    position:absolute; right:12px; left:12px; height:2px;
+    background:linear-gradient(90deg, transparent, var(--or), var(--or-clair), var(--or), transparent);
+    background-size:200% 100%;
+    animation:shimmer 3s linear infinite;
+  }
+  .shimmer.top{top:10px;}
+  .shimmer.bottom{bottom:10px;}
+  @keyframes shimmer{
+    from{background-position:200% 0;}
+    to{background-position:-200% 0;}
+  }
+  .ornement{
+    position:absolute; width:22px; height:22px;
+    border-top:2px solid var(--or); border-right:2px solid var(--or);
+    animation:tourner 8s linear infinite;
+  }
+  .ornement.tl{top:16px; left:16px; transform:rotate(-45deg);}
+  .ornement.tr{top:16px; right:16px; transform:rotate(45deg);}
+  .ornement.bl{bottom:16px; left:16px; transform:rotate(-135deg);}
+  .ornement.br{bottom:16px; right:16px; transform:rotate(135deg);}
+  @keyframes tourner{from{transform-origin:center; }}
+
+  .titre{
+    font-family:'Amiri', serif;
+    font-size:24px;
+    color:var(--or-clair);
+    margin-top:28px;
+    margin-bottom:4px;
+  }
+  .sous-titre{
+    font-size:13px;
+    color:rgba(255,255,255,0.6);
+    margin-bottom:28px;
+    letter-spacing:0.5px;
+  }
+
+  .voyant{
+    width:180px; height:180px;
+    margin:0 auto 24px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #666, #333 70%);
+    box-shadow:0 0 40px rgba(0,0,0,0.4), inset 0 0 30px rgba(0,0,0,0.5);
+    transition:background 0.3s ease, box-shadow 0.3s ease;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+  .voyant.vert{
+    background:radial-gradient(circle at 35% 30%, #7CFC7C, #0f9d0f 70%);
+    box-shadow:0 0 60px rgba(60,255,60,0.7), inset 0 0 30px rgba(0,80,0,0.4);
+  }
+  .voyant.rouge{
+    background:radial-gradient(circle at 35% 30%, #ff8a8a, #b30000 70%);
+    box-shadow:0 0 40px rgba(255,40,40,0.5), inset 0 0 30px rgba(80,0,0,0.4);
+  }
+  .frequence{
+    font-family:'Amiri', serif;
+    font-size:28px;
+    font-weight:700;
+    color:#fff;
+  }
+  .frequence span{font-size:14px; opacity:0.7;}
+
+  .statut{
+    font-size:16px;
+    font-weight:700;
+    margin-bottom:20px;
+    min-height:22px;
+  }
+  .statut.vert{color:#7CFC7C;}
+  .statut.rouge{color:#ff8a8a;}
+  .statut.gris{color:rgba(255,255,255,0.5);}
+
+  #btn{
+    background:linear-gradient(135deg, var(--or), var(--or-vif));
+    color:var(--bleu-profond);
+    border:none;
+    padding:14px 36px;
+    border-radius:14px;
+    font-family:'Tajawal', sans-serif;
+    font-weight:900;
+    font-size:16px;
+    cursor:pointer;
+    box-shadow:0 8px 20px rgba(255,204,0,0.3);
+    transition:transform 0.15s ease;
+  }
+  #btn:active{transform:scale(0.96);}
+  #btn:disabled{opacity:0.5; cursor:default;}
+
+  .erreur{
+    color:#ff8a8a;
+    font-size:13px;
+    margin-top:16px;
+    line-height:1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="carte">
+  <div class="shimmer top"></div>
+  <div class="shimmer bottom"></div>
+  <div class="ornement tl"></div>
+  <div class="ornement tr"></div>
+  <div class="ornement bl"></div>
+  <div class="ornement br"></div>
+
+  <div class="titre">كاشف الاهتزاز</div>
+  <div class="sous-titre">5Hz — 5.5Hz</div>
+
+  <div class="voyant" id="voyant">
+    <div class="frequence" id="freqDisplay">--<span> Hz</span></div>
+  </div>
+
+  <div class="statut gris" id="statut">في الانتظار</div>
+
+  <button id="btn">تشغيل الكاشف</button>
+  <div class="erreur" id="erreur"></div>
+</div>
+
+<script>
+const btn = document.getElementById('btn');
+const voyant = document.getElementById('voyant');
+const statut = document.getElementById('statut');
+const freqDisplay = document.getElementById('freqDisplay');
+const erreurEl = document.getElementById('erreur');
+
+let actif = false;
+let buffer = [];
+const FENETRE_MS = 2000; // 2 secondes d'historique pour analyse fiable
+let dernierUpdate = 0;
+
+function calculerFrequence(echantillons) {
+  // échantillons: [{t, v}] avec v = magnitude de l'accélération (sans gravité)
+  if (echantillons.length < 10) return null;
+
+  // Moyenne pour centrer le signal
+  const moyenne = echantillons.reduce((s, e) => s + e.v, 0) / echantillons.length;
+
+  // Comptage des passages par zéro (signal centré)
+  let passages = 0;
+  for (let i = 1; i < echantillons.length; i++) {
+    const a = echantillons[i-1].v - moyenne;
+    const b = echantillons[i].v - moyenne;
+    if ((a < 0 && b >= 0) || (a > 0 && b <= 0)) {
+      passages++;
+    }
+  }
+
+  const dureeSec = (echantillons[echantillons.length-1].t - echantillons[0].t) / 1000;
+  if (dureeSec <= 0) return null;
+
+  // 2 passages par zéro = 1 cycle complet
+  const frequence = (passages / 2) / dureeSec;
+  return frequence;
+}
+
+function gererMouvement(event) {
+  const acc = event.accelerationIncludingGravity || event.acceleration;
+  if (!acc) return;
+
+  const x = acc.x || 0;
+  const y = acc.y || 0;
+  const z = acc.z || 0;
+  const magnitude = Math.sqrt(x*x + y*y + z*z);
+  const maintenant = performance.now();
+
+  buffer.push({t: maintenant, v: magnitude});
+  // Garder seulement la fenêtre glissante
+  buffer = buffer.filter(e => maintenant - e.t <= FENETRE_MS);
+
+  // Rafraîchir l'affichage max toutes les 150ms
+  if (maintenant - dernierUpdate < 150) return;
+  dernierUpdate = maintenant;
+
+  const freq = calculerFrequence(buffer);
+  if (freq === null) {
+    freqDisplay.innerHTML = '--<span> Hz</span>';
+    return;
+  }
+
+  freqDisplay.innerHTML = freq.toFixed(1) + '<span> Hz</span>';
+
+  if (freq >= 5 && freq <= 5.5) {
+    voyant.className = 'voyant vert';
+    statut.className = 'statut vert';
+    statut.textContent = 'اهتزاز مكتشف';
+  } else {
+    voyant.className = 'voyant rouge';
+    statut.className = 'statut rouge';
+    statut.textContent = 'خارج النطاق';
+  }
+}
+
+async function demarrer() {
+  erreurEl.textContent = '';
+
+  if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+    try {
+      const permission = await DeviceMotionEvent.requestPermission();
+      if (permission !== 'granted') {
+        erreurEl.textContent = 'تم رفض إذن الوصول لحساس الحركة';
+        return;
+      }
+    } catch (e) {
+      erreurEl.textContent = 'خطأ في طلب الإذن: ' + e.message;
+      return;
+    }
+  }
+
+  window.addEventListener('devicemotion', gererMouvement);
+  actif = true;
+  btn.textContent = 'إيقاف الكاشف';
+  statut.className = 'statut gris';
+  statut.textContent = 'جاري القياس...';
+}
+
+function arreter() {
+  window.removeEventListener('devicemotion', gererMouvement);
+  actif = false;
+  buffer = [];
+  btn.textContent = 'تشغيل الكاشف';
+  voyant.className = 'voyant';
+  freqDisplay.innerHTML = '--<span> Hz</span>';
+  statut.className = 'statut gris';
+  statut.textContent = 'في الانتظار';
+}
+
+btn.addEventListener('click', () => {
+  if (!actif) {
+    demarrer();
+  } else {
+    arreter();
+  }
+});
+</script>
+
+</body>
+</html>
