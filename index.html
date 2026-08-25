@@ -147,6 +147,234 @@
     margin-top:16px;
     line-height:1.6;
   }
+
+  .amplitude-bloc{
+    margin-top:20px;
+    padding-top:18px;
+    border-top:1px solid rgba(255,215,0,0.25);
+  }
+  .amplitude-etiquette{
+    font-size:12px;
+    color:rgba(255,255,255,0.55);
+    margin-bottom:8px;
+    letter-spacing:0.5px;
+  }
+  .amplitude-valeur{
+    font-family:'Amiri', serif;
+    font-size:20px;
+    font-weight:700;
+    color:var(--or-clair);
+    margin-bottom:10px;
+  }
+  .amplitude-valeur span{font-size:12px; opacity:0.7;}
+
+  .graphique-bloc{
+    margin-top:20px;
+    padding-top:18px;
+    border-top:1px solid rgba(255,215,0,0.25);
+  }
+  .graphique-legende{
+    display:flex;
+    justify-content:center;
+    gap:18px;
+    font-size:11px;
+    color:rgba(255,255,255,0.7);
+    margin-bottom:10px;
+  }
+  .legende-item{display:flex; align-items:center; gap:6px;}
+  .legende-puce{width:10px; height:10px; border-radius:50%;}
+  .puce-freq{background:var(--or-vif);}
+  .puce-amp{background:#5ec8ff;}
+  canvas#graphique{
+    width:100%;
+    height:130px;
+    border-radius:12px;
+    background:rgba(0,0,0,0.2);
+    display:block;
+  }
+
+  .grille-bloc{
+    margin-top:20px;
+    padding-top:18px;
+    border-top:1px solid rgba(255,215,0,0.25);
+  }
+  .grille-titre{
+    font-size:11px;
+    color:rgba(255,255,255,0.65);
+    margin-bottom:6px;
+    letter-spacing:0.5px;
+    text-align:right;
+  }
+  .grille-conteneur{
+    display:flex;
+    margin-bottom:16px;
+  }
+  .grille-axe-y{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    width:34px;
+    padding:4px 4px 18px 0;
+    font-size:9px;
+    color:rgba(255,255,255,0.55);
+    text-align:left;
+    direction:ltr;
+  }
+  canvas.grille-canvas{
+    flex:1;
+    width:100%;
+    height:110px;
+    border-radius:10px;
+    background:rgba(0,0,0,0.22);
+    display:block;
+  }
+
+  .reference-bloc{
+    margin-top:20px;
+    padding-top:18px;
+    border-top:1px solid rgba(255,215,0,0.25);
+    text-align:right;
+  }
+  .reference-titre{
+    font-size:13px;
+    font-weight:700;
+    color:var(--or-clair);
+    margin-bottom:10px;
+    text-align:center;
+  }
+  .reference-soustitre{
+    font-size:12px;
+    font-weight:700;
+    color:rgba(255,255,255,0.75);
+    margin:12px 0 6px;
+  }
+  table.reference-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:11px;
+  }
+  table.reference-table td{
+    padding:6px 4px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    color:rgba(255,255,255,0.85);
+  }
+  table.reference-table td.valeur{
+    color:var(--or-clair);
+    font-weight:700;
+    white-space:nowrap;
+    direction:ltr;
+    text-align:left;
+  }
+
+  .matrice-bloc{
+    margin-top:20px;
+    padding-top:18px;
+    border-top:1px solid rgba(255,215,0,0.25);
+  }
+  .matrice-titre{
+    font-size:13px;
+    font-weight:700;
+    color:var(--or-clair);
+    margin-bottom:14px;
+    text-align:center;
+  }
+  table.matrice-table{
+    border-collapse:separate;
+    border-spacing:3px;
+    margin:0 auto;
+  }
+  table.matrice-table td{
+    text-align:center;
+    vertical-align:middle;
+  }
+  .matrice-cellule{
+    width:56px;
+    height:56px;
+    border-radius:8px;
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.1);
+    transition:all 0.25s ease;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    font-size:9px;
+    line-height:1.15;
+    font-weight:700;
+    padding:2px;
+    overflow:hidden;
+  }
+  .matrice-cellule.allume{
+    box-shadow:0 0 14px 3px currentColor;
+    border:1px solid #fff;
+    animation:pulserMatrice 1s ease-in-out infinite;
+  }
+  .matrice-cellule-texte{
+    color:#020b2e;
+    display:none;
+  }
+  .matrice-cellule.allume .matrice-cellule-texte{
+    display:block;
+  }
+  @keyframes pulserMatrice{
+    0%, 100%{opacity:1;}
+    50%{opacity:0.65;}
+  }
+  .matrice-entete-ligne{
+    font-size:11px;
+    color:rgba(255,255,255,0.8);
+    max-width:90px;
+    line-height:1.35;
+    padding-inline-start:8px;
+  }
+  .matrice-entete-colonne{
+    font-size:10px;
+    color:rgba(255,255,255,0.8);
+    max-width:56px;
+    line-height:1.3;
+    writing-mode:vertical-rl;
+    transform:rotate(180deg);
+    padding-top:6px;
+  }
+  .matrice-coin{
+    font-size:8px;
+    color:rgba(255,255,255,0.4);
+  }
+  .matrice-legende{
+    display:flex;
+    justify-content:space-between;
+    font-size:9px;
+    color:rgba(255,255,255,0.45);
+    margin-top:8px;
+  }
+  .matrice-signification{
+    margin-top:14px;
+    padding:10px;
+    border-radius:10px;
+    background:rgba(255,255,255,0.06);
+    font-size:14px;
+    font-weight:900;
+    min-height:20px;
+    transition:all 0.25s ease;
+  }
+
+  .alerte-bandeau{
+    display:none;
+    margin-top:16px;
+    padding:12px;
+    border-radius:12px;
+    background:rgba(255,40,40,0.18);
+    border:1px solid rgba(255,80,80,0.5);
+    color:#ff8a8a;
+    font-weight:900;
+    font-size:15px;
+    animation:pulserAlerte 1s ease-in-out infinite;
+  }
+  .alerte-bandeau.actif{display:block;}
+  @keyframes pulserAlerte{
+    0%, 100%{opacity:1;}
+    50%{opacity:0.6;}
+  }
 </style>
 </head>
 <body>
@@ -170,6 +398,67 @@
 
   <button id="btn">تشغيل الكاشف</button>
   <div class="erreur" id="erreur"></div>
+
+  <div class="amplitude-bloc">
+    <div class="amplitude-etiquette">شدة الاهتزاز (السعة)</div>
+    <div class="amplitude-valeur" id="ampValeur">--<span> m/s²</span></div>
+  </div>
+
+  <div class="graphique-bloc">
+    <div class="graphique-legende">
+      <div class="legende-item"><span class="legende-puce puce-freq"></span> التردد (Hz)</div>
+      <div class="legende-item"><span class="legende-puce puce-amp"></span> السعة (m/s²)</div>
+    </div>
+    <canvas id="graphique"></canvas>
+  </div>
+
+  <div class="grille-bloc">
+    <div class="grille-titre">شبكة السعة (m/s²)</div>
+    <div class="grille-conteneur">
+      <div class="grille-axe-y" id="ampAxeY"></div>
+      <canvas class="grille-canvas" id="grilleAmp"></canvas>
+    </div>
+
+    <div class="grille-titre">شبكة التردد (Hz)</div>
+    <div class="grille-conteneur">
+      <div class="grille-axe-y" id="freqAxeY"></div>
+      <canvas class="grille-canvas" id="grilleFreq"></canvas>
+    </div>
+  </div>
+
+  <div class="reference-bloc">
+    <div class="reference-titre">مرجع تقريبي (غير مضمون، يعتمد على موقعك)</div>
+
+    <div class="reference-soustitre">التردد (Hz)</div>
+    <table class="reference-table">
+      <tr><td>لا يوجد قطار / اهتزاز طبيعي</td><td class="valeur">5 - 5.5 Hz</td></tr>
+      <tr><td>قطار بعيد، تأثير خفيف</td><td class="valeur">4.5 - 5 Hz</td></tr>
+      <tr><td>قطار يقترب</td><td class="valeur">3.5 - 4.5 Hz</td></tr>
+      <tr><td>قطار قريب</td><td class="valeur">2 - 3.5 Hz</td></tr>
+      <tr><td>قطار قريب جداً / يمر الآن</td><td class="valeur">أقل من 2 Hz</td></tr>
+    </table>
+
+    <div class="reference-soustitre">السعة (m/s²)</div>
+    <table class="reference-table">
+      <tr><td>اهتزاز محيطي (لا شيء خاص)</td><td class="valeur">0.01 - 0.05</td></tr>
+      <tr><td>قطار بعيد، بالكاد محسوس</td><td class="valeur">0.05 - 0.2</td></tr>
+      <tr><td>قطار يقترب، اهتزاز واضح</td><td class="valeur">0.2 - 0.8</td></tr>
+      <tr><td>قطار قريب / يمر مباشرة</td><td class="valeur">0.8 - 2</td></tr>
+      <tr><td>اهتزاز قوي جداً</td><td class="valeur">2 - 5</td></tr>
+    </table>
+  </div>
+
+  <div class="matrice-bloc">
+    <div class="matrice-titre">جدول متقاطع — Hz × m/s²</div>
+    <div id="matriceConteneur"></div>
+    <div class="matrice-legende">
+      <span>◀ السعة تزيد</span>
+      <span>التردد ينخفض ▼</span>
+    </div>
+    <div class="matrice-signification" id="matriceSignification">--</div>
+  </div>
+
+  <div class="alerte-bandeau" id="alerteBandeau">🚆 تنبيه: قطار محتمل يقترب</div>
 </div>
 
 <script>
@@ -178,11 +467,40 @@ const voyant = document.getElementById('voyant');
 const statut = document.getElementById('statut');
 const freqDisplay = document.getElementById('freqDisplay');
 const erreurEl = document.getElementById('erreur');
+const ampValeurEl = document.getElementById('ampValeur');
+const canvas = document.getElementById('graphique');
+const ctx = canvas.getContext('2d');
+const alerteBandeauEl = document.getElementById('alerteBandeau');
+
+const grilleAmpCanvas = document.getElementById('grilleAmp');
+const grilleAmpCtx = grilleAmpCanvas.getContext('2d');
+const ampAxeYEl = document.getElementById('ampAxeY');
+const grilleFreqCanvas = document.getElementById('grilleFreq');
+const grilleFreqCtx = grilleFreqCanvas.getContext('2d');
+const freqAxeYEl = document.getElementById('freqAxeY');
+
+const matriceConteneurEl = document.getElementById('matriceConteneur');
+const matriceSignificationEl = document.getElementById('matriceSignification');
 
 let actif = false;
 let buffer = [];
 const FENETRE_MS = 2000; // 2 secondes d'historique pour analyse fiable
 let dernierUpdate = 0;
+
+// ===== Historique pour le graphique (indépendant du buffer de calcul) =====
+let historique = []; // {t, freq, amp}
+const HISTORIQUE_MS = 30000; // 30 secondes affichées sur le graphique
+const FREQ_MAX_GRAPHIQUE = 10; // échelle fixe pour l'axe Hz
+let ampMaxGraphique = 1; // échelle auto-ajustée pour l'axe amplitude
+
+// ===== Détection d'alerte train =====
+const SEUIL_BAISSE_FREQ = 0.3;   // Hz : baisse minimale jugée significative
+const SEUIL_HAUSSE_AMP = 0.15;   // m/s² : hausse minimale jugée significative
+const ALERTE_COOLDOWN_MS = 15000; // ne pas re-sonner avant 15s
+const SEUIL_FREQ_ALARME = 3.5;   // Hz : en dessous de ça, alarme directe
+const SEUIL_AMP_ALARME = 0.2;    // m/s² : au dessus de ça, alarme directe
+let dernierAlerteT = 0;
+let audioCtx = null;
 
 function calculerFrequence(echantillons) {
   // échantillons: [{t, v}] avec v = magnitude de l'accélération (sans gravité)
@@ -209,6 +527,362 @@ function calculerFrequence(echantillons) {
   return frequence;
 }
 
+function calculerAmplitude(echantillons) {
+  // Mesure indépendante : écart-type du signal = intensité générale des secousses
+  if (echantillons.length < 2) return null;
+  const moyenne = echantillons.reduce((s, e) => s + e.v, 0) / echantillons.length;
+  const variance = echantillons.reduce((s, e) => s + Math.pow(e.v - moyenne, 2), 0) / echantillons.length;
+  return Math.sqrt(variance);
+}
+
+function afficherAmplitude(amplitude) {
+  if (amplitude === null) {
+    ampValeurEl.innerHTML = '--<span> m/s²</span>';
+    return;
+  }
+  ampValeurEl.innerHTML = amplitude.toFixed(2) + '<span> m/s²</span>';
+}
+
+function redimensionnerCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width = rect.width * ratio;
+  canvas.height = rect.height * ratio;
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+}
+
+function dessinerGraphique() {
+  const largeur = canvas.getBoundingClientRect().width;
+  const hauteur = canvas.getBoundingClientRect().height;
+  ctx.clearRect(0, 0, largeur, hauteur);
+
+  if (historique.length < 2) return;
+
+  const maintenant = historique[historique.length - 1].t;
+  const tDebut = maintenant - HISTORIQUE_MS;
+
+  // Mettre à jour l'échelle max de l'amplitude (auto-ajustée, jamais en dessous de 1)
+  const ampsVisibles = historique.filter(p => p.t >= tDebut && p.amp !== null).map(p => p.amp);
+  if (ampsVisibles.length) {
+    const maxObserve = Math.max(...ampsVisibles);
+    ampMaxGraphique = Math.max(1, maxObserve * 1.2);
+  }
+
+  const x = (t) => ((t - tDebut) / HISTORIQUE_MS) * largeur;
+  const yFreq = (f) => hauteur - (Math.min(f, FREQ_MAX_GRAPHIQUE) / FREQ_MAX_GRAPHIQUE) * hauteur;
+  const yAmp = (a) => hauteur - (Math.min(a, ampMaxGraphique) / ampMaxGraphique) * hauteur;
+
+  // Bande de la plage cible 5-5.5Hz en fond
+  ctx.fillStyle = 'rgba(124,252,124,0.08)';
+  ctx.fillRect(0, yFreq(5.5), largeur, yFreq(5) - yFreq(5.5));
+
+  // Courbe fréquence (or)
+  ctx.beginPath();
+  ctx.strokeStyle = '#ffcc00';
+  ctx.lineWidth = 2;
+  let premierPoint = true;
+  historique.forEach(p => {
+    if (p.t < tDebut || p.freq === null) return;
+    const px = x(p.t), py = yFreq(p.freq);
+    if (premierPoint) { ctx.moveTo(px, py); premierPoint = false; }
+    else ctx.lineTo(px, py);
+  });
+  ctx.stroke();
+
+  // Courbe amplitude (bleu clair)
+  ctx.beginPath();
+  ctx.strokeStyle = '#5ec8ff';
+  ctx.lineWidth = 2;
+  premierPoint = true;
+  historique.forEach(p => {
+    if (p.t < tDebut || p.amp === null) return;
+    const px = x(p.t), py = yAmp(p.amp);
+    if (premierPoint) { ctx.moveTo(px, py); premierPoint = false; }
+    else ctx.lineTo(px, py);
+  });
+  ctx.stroke();
+}
+
+function redimensionnerGrilles() {
+  [grilleAmpCanvas, grilleFreqCanvas].forEach(c => {
+    const rect = c.getBoundingClientRect();
+    const ratio = window.devicePixelRatio || 1;
+    c.width = rect.width * ratio;
+    c.height = rect.height * ratio;
+    c.getContext('2d').setTransform(ratio, 0, 0, ratio, 0, 0);
+  });
+}
+
+function dessinerQuadrillage(contexte, largeur, hauteur, nbColonnes, nbLignes) {
+  contexte.strokeStyle = 'rgba(255,255,255,0.12)';
+  contexte.lineWidth = 1;
+  for (let i = 0; i <= nbColonnes; i++) {
+    const px = (i / nbColonnes) * largeur;
+    contexte.beginPath();
+    contexte.moveTo(px, 0);
+    contexte.lineTo(px, hauteur);
+    contexte.stroke();
+  }
+  for (let j = 0; j <= nbLignes; j++) {
+    const py = (j / nbLignes) * hauteur;
+    contexte.beginPath();
+    contexte.moveTo(0, py);
+    contexte.lineTo(largeur, py);
+    contexte.stroke();
+  }
+}
+
+function dessinerGrilleAmplitude() {
+  const largeur = grilleAmpCanvas.getBoundingClientRect().width;
+  const hauteur = grilleAmpCanvas.getBoundingClientRect().height;
+  grilleAmpCtx.clearRect(0, 0, largeur, hauteur);
+
+  const NB_LIGNES = 4;
+  dessinerQuadrillage(grilleAmpCtx, largeur, hauteur, 6, NB_LIGNES);
+
+  // Coordonnées de l'axe Y (m/s²), du haut vers le bas
+  ampAxeYEl.innerHTML = '';
+  for (let j = 0; j <= NB_LIGNES; j++) {
+    const valeur = ampMaxGraphique * (1 - j / NB_LIGNES);
+    const div = document.createElement('div');
+    div.textContent = valeur.toFixed(2);
+    ampAxeYEl.appendChild(div);
+  }
+
+  if (historique.length < 2) return;
+  const maintenant = historique[historique.length - 1].t;
+  const tDebut = maintenant - HISTORIQUE_MS;
+  const x = (t) => ((t - tDebut) / HISTORIQUE_MS) * largeur;
+  const y = (a) => hauteur - (Math.min(a, ampMaxGraphique) / ampMaxGraphique) * hauteur;
+
+  grilleAmpCtx.beginPath();
+  grilleAmpCtx.strokeStyle = '#5ec8ff';
+  grilleAmpCtx.lineWidth = 2;
+  let premierPoint = true;
+  historique.forEach(p => {
+    if (p.t < tDebut || p.amp === null) return;
+    const px = x(p.t), py = y(p.amp);
+    if (premierPoint) { grilleAmpCtx.moveTo(px, py); premierPoint = false; }
+    else grilleAmpCtx.lineTo(px, py);
+  });
+  grilleAmpCtx.stroke();
+}
+
+function dessinerGrilleFrequence() {
+  const largeur = grilleFreqCanvas.getBoundingClientRect().width;
+  const hauteur = grilleFreqCanvas.getBoundingClientRect().height;
+  grilleFreqCtx.clearRect(0, 0, largeur, hauteur);
+
+  const NB_LIGNES = 5; // 0,2,4,6,8,10 Hz
+  dessinerQuadrillage(grilleFreqCtx, largeur, hauteur, 6, NB_LIGNES);
+
+  // Coordonnées de l'axe Y (Hz), du haut vers le bas
+  freqAxeYEl.innerHTML = '';
+  for (let j = 0; j <= NB_LIGNES; j++) {
+    const valeur = FREQ_MAX_GRAPHIQUE * (1 - j / NB_LIGNES);
+    const div = document.createElement('div');
+    div.textContent = valeur.toFixed(1);
+    freqAxeYEl.appendChild(div);
+  }
+
+  if (historique.length < 2) return;
+  const maintenant = historique[historique.length - 1].t;
+  const tDebut = maintenant - HISTORIQUE_MS;
+  const x = (t) => ((t - tDebut) / HISTORIQUE_MS) * largeur;
+  const y = (f) => hauteur - (Math.min(f, FREQ_MAX_GRAPHIQUE) / FREQ_MAX_GRAPHIQUE) * hauteur;
+
+  // Bande cible 5-5.5Hz
+  grilleFreqCtx.fillStyle = 'rgba(124,252,124,0.10)';
+  grilleFreqCtx.fillRect(0, y(5.5), largeur, y(5) - y(5.5));
+
+  grilleFreqCtx.beginPath();
+  grilleFreqCtx.strokeStyle = '#ffcc00';
+  grilleFreqCtx.lineWidth = 2;
+  let premierPoint = true;
+  historique.forEach(p => {
+    if (p.t < tDebut || p.freq === null) return;
+    const px = x(p.t), py = y(p.freq);
+    if (premierPoint) { grilleFreqCtx.moveTo(px, py); premierPoint = false; }
+    else grilleFreqCtx.lineTo(px, py);
+  });
+  grilleFreqCtx.stroke();
+}
+
+// ===== Tableau croisé (matrice Hz × m/s²) =====
+// Zones Hz : rangées, de haut (normal) vers le bas (train très proche)
+const ZONES_FREQ = [
+  {min:5,   max:6,   couleur:'#7CFC7C', nom:'طبيعي', plage:'5 - 5.5+'},
+  {min:4.5, max:5,   couleur:'#c8e86c', nom:'بعيد',   plage:'4.5 - 5'},
+  {min:3.5, max:4.5, couleur:'#ffd23d', nom:'يقترب',  plage:'3.5 - 4.5'},
+  {min:2,   max:3.5, couleur:'#ff8a3d', nom:'قريب',   plage:'2 - 3.5'},
+  {min:0,   max:2,   couleur:'#ff4d4d', nom:'قريب جداً', plage:'< 2'}
+];
+// Zones amplitude : colonnes, de droite (calme) vers la gauche (fort)
+const ZONES_AMP = [
+  {min:0,    max:0.05, couleur:'#7CFC7C', nom:'هادئ', plage:'0-0.05'},
+  {min:0.05, max:0.2,  couleur:'#c8e86c', nom:'بعيد', plage:'0.05-0.2'},
+  {min:0.2,  max:0.8,  couleur:'#ffd23d', nom:'يقترب', plage:'0.2-0.8'},
+  {min:0.8,  max:2,    couleur:'#ff8a3d', nom:'قريب', plage:'0.8-2'},
+  {min:2,    max:3,    couleur:'#ff4d4d', nom:'قوي جداً', plage:'2-3+'}
+];
+
+function trouverIndexZone(zones, valeur) {
+  for (let i = 0; i < zones.length; i++) {
+    if (valeur >= zones[i].min && valeur <= zones[i].max) return i;
+  }
+  // hors plage : borne au dernier ou premier
+  return valeur < zones[zones.length-1].min ? zones.length - 1 : 0;
+}
+
+function construireMatrice() {
+  matriceConteneurEl.innerHTML = '';
+  const table = document.createElement('table');
+  table.className = 'matrice-table';
+
+  ZONES_FREQ.forEach((zoneHz, i) => {
+    const tr = document.createElement('tr');
+
+    // Étiquette de ligne (Hz) à droite
+    const tdEtiquette = document.createElement('td');
+    tdEtiquette.className = 'matrice-entete-ligne';
+    tdEtiquette.innerHTML = zoneHz.nom + '<br>' + zoneHz.plage + ' Hz';
+    tr.appendChild(tdEtiquette);
+
+    // Cellules pour chaque zone amplitude
+    ZONES_AMP.forEach((zoneAmp, j) => {
+      const td = document.createElement('td');
+      const div = document.createElement('div');
+      div.className = 'matrice-cellule';
+      div.id = 'cellule_' + i + '_' + j;
+      const span = document.createElement('span');
+      span.className = 'matrice-cellule-texte';
+      div.appendChild(span);
+      td.appendChild(div);
+      tr.appendChild(td);
+    });
+
+    table.appendChild(tr);
+  });
+
+  // Ligne d'en-tête des colonnes (amplitude) en bas
+  const trBas = document.createElement('tr');
+  trBas.appendChild(document.createElement('td')); // coin vide
+  ZONES_AMP.forEach(zoneAmp => {
+    const td = document.createElement('td');
+    td.className = 'matrice-entete-colonne';
+    td.innerHTML = zoneAmp.nom + '<br>' + zoneAmp.plage;
+    trBas.appendChild(td);
+  });
+  table.appendChild(trBas);
+
+  matriceConteneurEl.appendChild(table);
+}
+
+let derniereCelluleAllumee = null;
+
+// Signification du croisement : le niveau de sévérité le plus élevé des deux indices l'emporte
+const MESSAGES_CROISEMENT = [
+  {texte: 'لا يوجد مؤشر على قطار', couleur: '#7CFC7C'},
+  {texte: '🚆 قطار بعيد محتمل', couleur: '#c8e86c'},
+  {texte: '🚆 قطار يقترب', couleur: '#ffd23d'},
+  {texte: '🚆 قطار قريب', couleur: '#ff8a3d'},
+  {texte: '🚆 قطار قريب جداً / يمر الآن', couleur: '#ff4d4d'}
+];
+
+function mettreAJourMatrice(freq, amp) {
+  if (freq === null || amp === null) return;
+
+  const i = trouverIndexZone(ZONES_FREQ, freq);
+  const j = trouverIndexZone(ZONES_AMP, amp);
+
+  if (derniereCelluleAllumee) {
+    derniereCelluleAllumee.classList.remove('allume');
+    derniereCelluleAllumee.style.color = '';
+    const ancienSpan = derniereCelluleAllumee.querySelector('.matrice-cellule-texte');
+    if (ancienSpan) ancienSpan.textContent = '';
+  }
+
+  const cellule = document.getElementById('cellule_' + i + '_' + j);
+  if (cellule) {
+    cellule.classList.add('allume');
+    // Couleur = mélange des deux zones concordantes
+    cellule.style.color = ZONES_FREQ[i].couleur;
+    cellule.style.background = ZONES_AMP[j].couleur;
+    // La case allumée reproduit elle-même la signification du croisement
+    const span = cellule.querySelector('.matrice-cellule-texte');
+    if (span) span.textContent = ZONES_FREQ[i].nom + ' × ' + ZONES_AMP[j].nom;
+    derniereCelluleAllumee = cellule;
+  }
+
+  // Signification du croisement : on prend le niveau le plus sévère entre Hz et amplitude
+  const niveau = Math.max(i, j);
+  const message = MESSAGES_CROISEMENT[niveau];
+  matriceSignificationEl.textContent = message.texte + ' (' + ZONES_FREQ[i].nom + ' × ' + ZONES_AMP[j].nom + ')';
+  matriceSignificationEl.style.color = message.couleur;
+  matriceSignificationEl.style.borderRight = '4px solid ' + message.couleur;
+}
+
+
+function jouerAlerteSonore() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const maintenant = audioCtx.currentTime;
+    [0, 0.3, 0.6].forEach(decalage => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.0001, maintenant + decalage);
+      gain.gain.exponentialRampToValueAtTime(0.3, maintenant + decalage + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, maintenant + decalage + 0.22);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(maintenant + decalage);
+      osc.stop(maintenant + decalage + 0.25);
+    });
+  } catch (e) {
+    console.warn('Alerte sonore impossible:', e);
+  }
+}
+
+function verifierAlerteTrain(freqActuel, ampActuel) {
+  const maintenant = historique[historique.length - 1].t;
+
+  // Condition 1 : seuil direct sur les valeurs instantanées
+  const conditionSeuil = freqActuel !== null && ampActuel !== null &&
+    freqActuel < SEUIL_FREQ_ALARME && ampActuel > SEUIL_AMP_ALARME;
+
+  // Condition 2 : tendance (fréquence qui baisse + amplitude qui monte)
+  let conditionTendance = false;
+  const recents = historique.filter(p => maintenant - p.t <= 2000 && p.freq !== null && p.amp !== null);
+  const anciens = historique.filter(p => maintenant - p.t >= 3000 && maintenant - p.t <= 5000 && p.freq !== null && p.amp !== null);
+
+  if (recents.length >= 3 && anciens.length >= 3) {
+    const moyenne = (liste, cle) => liste.reduce((s, p) => s + p[cle], 0) / liste.length;
+
+    const freqRecent = moyenne(recents, 'freq');
+    const freqAncien = moyenne(anciens, 'freq');
+    const ampRecent = moyenne(recents, 'amp');
+    const ampAncien = moyenne(anciens, 'amp');
+
+    const baisseFreq = freqAncien - freqRecent; // positif si ça baisse
+    const hausseAmp = ampRecent - ampAncien;    // positif si ça monte
+
+    conditionTendance = baisseFreq >= SEUIL_BAISSE_FREQ && hausseAmp >= SEUIL_HAUSSE_AMP;
+  }
+
+  const conditionAlerte = conditionSeuil || conditionTendance;
+
+  if (conditionAlerte && (maintenant - dernierAlerteT) > ALERTE_COOLDOWN_MS) {
+    dernierAlerteT = maintenant;
+    alerteBandeauEl.className = 'alerte-bandeau actif';
+    jouerAlerteSonore();
+    setTimeout(() => {
+      alerteBandeauEl.className = 'alerte-bandeau';
+    }, 8000);
+  }
+}
+
 function gererMouvement(event) {
   const acc = event.accelerationIncludingGravity || event.acceleration;
   if (!acc) return;
@@ -227,6 +901,10 @@ function gererMouvement(event) {
   if (maintenant - dernierUpdate < 150) return;
   dernierUpdate = maintenant;
 
+  // Mesure séparée de l'amplitude (n'affecte pas le calcul de fréquence)
+  const amplitude = calculerAmplitude(buffer);
+  afficherAmplitude(amplitude);
+
   const freq = calculerFrequence(buffer);
   if (freq === null) {
     freqDisplay.innerHTML = '--<span> Hz</span>';
@@ -244,6 +922,15 @@ function gererMouvement(event) {
     statut.className = 'statut rouge';
     statut.textContent = 'خارج النطاق';
   }
+
+  // Enregistrement pour le graphique + vérification d'alerte train
+  historique.push({t: maintenant, freq: freq, amp: amplitude});
+  historique = historique.filter(p => maintenant - p.t <= HISTORIQUE_MS);
+  dessinerGraphique();
+  dessinerGrilleAmplitude();
+  dessinerGrilleFrequence();
+  mettreAJourMatrice(freq, amplitude);
+  verifierAlerteTrain(freq, amplitude);
 }
 
 async function demarrer() {
@@ -267,6 +954,9 @@ async function demarrer() {
   btn.textContent = 'إيقاف الكاشف';
   statut.className = 'statut gris';
   statut.textContent = 'جاري القياس...';
+  historique = [];
+  redimensionnerCanvas();
+  redimensionnerGrilles();
 }
 
 function arreter() {
@@ -278,6 +968,25 @@ function arreter() {
   freqDisplay.innerHTML = '--<span> Hz</span>';
   statut.className = 'statut gris';
   statut.textContent = 'في الانتظار';
+  afficherAmplitude(null);
+  historique = [];
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  grilleAmpCtx.clearRect(0, 0, grilleAmpCanvas.width, grilleAmpCanvas.height);
+  grilleFreqCtx.clearRect(0, 0, grilleFreqCanvas.width, grilleFreqCanvas.height);
+  ampAxeYEl.innerHTML = '';
+  freqAxeYEl.innerHTML = '';
+  alerteBandeauEl.className = 'alerte-bandeau';
+  if (derniereCelluleAllumee) {
+    derniereCelluleAllumee.classList.remove('allume');
+    derniereCelluleAllumee.style.color = '';
+    derniereCelluleAllumee.style.background = '';
+    const spanArret = derniereCelluleAllumee.querySelector('.matrice-cellule-texte');
+    if (spanArret) spanArret.textContent = '';
+    derniereCelluleAllumee = null;
+  }
+  matriceSignificationEl.textContent = '--';
+  matriceSignificationEl.style.color = '';
+  matriceSignificationEl.style.borderRight = '';
 }
 
 btn.addEventListener('click', () => {
@@ -288,9 +997,20 @@ btn.addEventListener('click', () => {
   }
 });
 
+redimensionnerCanvas();
+redimensionnerGrilles();
+construireMatrice();
+window.addEventListener('resize', () => {
+  redimensionnerCanvas();
+  redimensionnerGrilles();
+  dessinerGraphique();
+  dessinerGrilleAmplitude();
+  dessinerGrilleFrequence();
+});
+
 // ===== Mise en place PWA (tout en un seul fichier, sans dépendances externes) =====
 (function initPWA() {
-  // Icône : disque or/bleu roi avec l'onde, en SVG
+  // Icône : radar or/bleu roi avec faisceau balayeur, en SVG
   const iconSVG = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
       <defs>
@@ -298,11 +1018,38 @@ btn.addEventListener('click', () => {
           <stop offset="0%" stop-color="#0d1a6e"/>
           <stop offset="100%" stop-color="#020b2e"/>
         </radialGradient>
+        <radialGradient id="ecran" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#0d3d1a"/>
+          <stop offset="100%" stop-color="#031008"/>
+        </radialGradient>
+        <linearGradient id="faisceau" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#ffd700" stop-opacity="0.95"/>
+          <stop offset="100%" stop-color="#ffd700" stop-opacity="0"/>
+        </linearGradient>
       </defs>
       <rect width="512" height="512" rx="96" fill="url(#bg)"/>
-      <circle cx="256" cy="256" r="170" fill="none" stroke="#ffd700" stroke-width="10" opacity="0.5"/>
-      <path d="M 96 256 Q 146 156 196 256 T 296 256 T 396 256" fill="none" stroke="#ffd700" stroke-width="16" stroke-linecap="round"/>
-      <path d="M 96 300 Q 146 200 196 300 T 296 300 T 396 300" fill="none" stroke="#ffe566" stroke-width="10" stroke-linecap="round" opacity="0.7"/>
+
+      <!-- Écran radar -->
+      <circle cx="256" cy="256" r="185" fill="url(#ecran)" stroke="#ffd700" stroke-width="6" opacity="0.95"/>
+
+      <!-- Cercles concentriques -->
+      <circle cx="256" cy="256" r="140" fill="none" stroke="#ffd700" stroke-width="2.5" opacity="0.45"/>
+      <circle cx="256" cy="256" r="95" fill="none" stroke="#ffd700" stroke-width="2.5" opacity="0.45"/>
+      <circle cx="256" cy="256" r="50" fill="none" stroke="#ffd700" stroke-width="2.5" opacity="0.45"/>
+
+      <!-- Croix de visée -->
+      <line x1="256" y1="71" x2="256" y2="441" stroke="#ffd700" stroke-width="2" opacity="0.35"/>
+      <line x1="71" y1="256" x2="441" y2="256" stroke="#ffd700" stroke-width="2" opacity="0.35"/>
+
+      <!-- Faisceau balayeur -->
+      <path d="M 256 256 L 256 71 A 185 185 0 0 1 415 165 Z" fill="url(#faisceau)"/>
+
+      <!-- Points détectés -->
+      <circle cx="310" cy="190" r="7" fill="#7CFC7C"/>
+      <circle cx="205" cy="310" r="5" fill="#7CFC7C" opacity="0.6"/>
+
+      <!-- Point central -->
+      <circle cx="256" cy="256" r="9" fill="#ffe566"/>
     </svg>`;
   const iconBlob = new Blob([iconSVG], {type: 'image/svg+xml'});
   const iconURL = URL.createObjectURL(iconBlob);
