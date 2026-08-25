@@ -375,6 +375,128 @@
     0%, 100%{opacity:1;}
     50%{opacity:0.6;}
   }
+
+  .compteur-bloc{
+    margin-top:14px;
+    padding:10px 14px;
+    border-radius:12px;
+    background:rgba(255,215,0,0.08);
+    border:1px solid rgba(255,215,0,0.2);
+    font-size:12px;
+    color:rgba(255,255,255,0.8);
+    font-weight:700;
+  }
+
+  .reglages-bloc{
+    margin-top:20px;
+    padding-top:18px;
+    border-top:1px solid rgba(255,215,0,0.25);
+    text-align:right;
+  }
+  .reglages-titre{
+    font-size:13px;
+    font-weight:700;
+    color:var(--or-clair);
+    margin-bottom:12px;
+    text-align:center;
+  }
+  .reglage-item{
+    margin-bottom:14px;
+  }
+  .reglage-item label{
+    display:block;
+    font-size:12px;
+    color:rgba(255,255,255,0.75);
+    margin-bottom:6px;
+  }
+  .reglage-item label span{
+    color:var(--or-clair);
+    font-weight:700;
+  }
+  .reglage-item input[type="range"]{
+    width:100%;
+    accent-color:var(--or-vif);
+  }
+  #btnCalibrer{
+    margin-top:6px;
+    width:100%;
+    background:rgba(255,215,0,0.12);
+    color:var(--or-clair);
+    border:1px solid rgba(255,215,0,0.35);
+    padding:10px;
+    border-radius:12px;
+    font-family:'Tajawal', sans-serif;
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+  }
+  #btnCalibrer:disabled{opacity:0.5; cursor:default;}
+
+  .journal-bloc{
+    margin-top:20px;
+    padding-top:18px;
+    border-top:1px solid rgba(255,215,0,0.25);
+  }
+  .journal-titre{
+    font-size:13px;
+    font-weight:700;
+    color:var(--or-clair);
+    margin-bottom:10px;
+    text-align:center;
+  }
+  .journal-liste{
+    max-height:180px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-bottom:12px;
+  }
+  .journal-vide{
+    font-size:12px;
+    color:rgba(255,255,255,0.4);
+    text-align:center;
+    padding:10px;
+  }
+  .journal-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:11px;
+    padding:8px 10px;
+    background:rgba(255,255,255,0.05);
+    border-radius:8px;
+    border-inline-start:3px solid var(--or-vif);
+  }
+  .journal-item .journal-heure{
+    color:rgba(255,255,255,0.55);
+  }
+  .journal-item .journal-valeurs{
+    color:var(--or-clair);
+    font-weight:700;
+    direction:ltr;
+  }
+  .journal-actions{
+    display:flex;
+    gap:8px;
+  }
+  .journal-actions button{
+    flex:1;
+    background:rgba(255,255,255,0.06);
+    color:rgba(255,255,255,0.8);
+    border:1px solid rgba(255,255,255,0.15);
+    padding:9px;
+    border-radius:10px;
+    font-family:'Tajawal', sans-serif;
+    font-weight:700;
+    font-size:12px;
+    cursor:pointer;
+  }
+  #btnExportCSV{
+    background:rgba(255,215,0,0.12) !important;
+    color:var(--or-clair) !important;
+    border:1px solid rgba(255,215,0,0.35) !important;
+  }
 </style>
 </head>
 <body>
@@ -398,6 +520,7 @@
 
   <button id="btn">تشغيل الكاشف</button>
   <div class="erreur" id="erreur"></div>
+  <div class="compteur-bloc" id="compteurBloc">لم يتم اكتشاف أي قطار اليوم بعد</div>
 
   <div class="amplitude-bloc">
     <div class="amplitude-etiquette">شدة الاهتزاز (السعة)</div>
@@ -448,6 +571,19 @@
     </table>
   </div>
 
+  <div class="reglages-bloc">
+    <div class="reglages-titre">إعدادات التنبيه</div>
+    <div class="reglage-item">
+      <label>حد التردد — ينذر تحت <span id="seuilFreqValeur">3.5</span> Hz</label>
+      <input type="range" id="seuilFreqSlider" min="1" max="5" step="0.1" value="3.5">
+    </div>
+    <div class="reglage-item">
+      <label>حد السعة — ينذر فوق <span id="seuilAmpValeur">0.20</span> m/s²</label>
+      <input type="range" id="seuilAmpSlider" min="0.05" max="1" step="0.01" value="0.2">
+    </div>
+    <button id="btnCalibrer">📡 قياس الضجيج المحيط ومعايرة العتبة</button>
+  </div>
+
   <div class="matrice-bloc">
     <div class="matrice-titre">جدول متقاطع — Hz × m/s²</div>
     <div id="matriceConteneur"></div>
@@ -459,6 +595,17 @@
   </div>
 
   <div class="alerte-bandeau" id="alerteBandeau">🚆 تنبيه: قطار محتمل يقترب</div>
+
+  <div class="journal-bloc">
+    <div class="journal-titre">سجل الاكتشافات</div>
+    <div class="journal-liste" id="journalListe">
+      <div class="journal-vide">لا يوجد اكتشاف بعد</div>
+    </div>
+    <div class="journal-actions">
+      <button id="btnExportCSV">⬇ تصدير CSV</button>
+      <button id="btnEffacerJournal">🗑 مسح السجل</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -482,6 +629,16 @@ const freqAxeYEl = document.getElementById('freqAxeY');
 const matriceConteneurEl = document.getElementById('matriceConteneur');
 const matriceSignificationEl = document.getElementById('matriceSignification');
 
+const compteurBlocEl = document.getElementById('compteurBloc');
+const seuilFreqSlider = document.getElementById('seuilFreqSlider');
+const seuilFreqValeurEl = document.getElementById('seuilFreqValeur');
+const seuilAmpSlider = document.getElementById('seuilAmpSlider');
+const seuilAmpValeurEl = document.getElementById('seuilAmpValeur');
+const btnCalibrer = document.getElementById('btnCalibrer');
+const journalListeEl = document.getElementById('journalListe');
+const btnExportCSV = document.getElementById('btnExportCSV');
+const btnEffacerJournal = document.getElementById('btnEffacerJournal');
+
 let actif = false;
 let buffer = [];
 const FENETRE_MS = 2000; // 2 secondes d'historique pour analyse fiable
@@ -497,10 +654,28 @@ let ampMaxGraphique = 1; // échelle auto-ajustée pour l'axe amplitude
 const SEUIL_BAISSE_FREQ = 0.3;   // Hz : baisse minimale jugée significative
 const SEUIL_HAUSSE_AMP = 0.15;   // m/s² : hausse minimale jugée significative
 const ALERTE_COOLDOWN_MS = 15000; // ne pas re-sonner avant 15s
-const SEUIL_FREQ_ALARME = 3.5;   // Hz : en dessous de ça, alarme directe
-const SEUIL_AMP_ALARME = 0.2;    // m/s² : au dessus de ça, alarme directe
+let SEUIL_FREQ_ALARME = 3.5;   // Hz : en dessous de ça, alarme directe (ajustable)
+let SEUIL_AMP_ALARME = 0.2;    // m/s² : au dessus de ça, alarme directe (ajustable)
 let dernierAlerteT = 0;
 let audioCtx = null;
+
+// ===== Wake Lock (empêcher l'écran de s'éteindre pendant la mesure) =====
+let wakeLock = null;
+
+// ===== Lissage du signal (filtre passe-bas léger contre le bruit) =====
+let magnitudeLissee = null;
+const ALPHA_LISSAGE = 0.35;
+
+// ===== Icône pour les notifications (renseignée par initPWA) =====
+let iconeURLGlobale = '';
+
+// ===== Journal des détections =====
+let journalDetections = [];
+const JOURNAL_MAX = 50;
+
+// ===== Compteur quotidien =====
+let compteurDetections = 0;
+let dernierDetectionT = null;
 
 function calculerFrequence(echantillons) {
   // échantillons: [{t, v}] avec v = magnitude de l'accélération (sans gravité)
@@ -823,9 +998,186 @@ function mettreAJourMatrice(freq, amp) {
 }
 
 
+// ===== Seuils ajustables (persistés en localStorage) =====
+function sauvegarderSeuils() {
+  try {
+    localStorage.setItem('kachef_seuil_freq', String(SEUIL_FREQ_ALARME));
+    localStorage.setItem('kachef_seuil_amp', String(SEUIL_AMP_ALARME));
+  } catch (e) { console.warn('Sauvegarde seuils impossible:', e); }
+}
+
+function chargerSeuils() {
+  try {
+    const f = localStorage.getItem('kachef_seuil_freq');
+    const a = localStorage.getItem('kachef_seuil_amp');
+    if (f !== null) SEUIL_FREQ_ALARME = parseFloat(f);
+    if (a !== null) SEUIL_AMP_ALARME = parseFloat(a);
+  } catch (e) { console.warn('Lecture seuils impossible:', e); }
+  seuilFreqSlider.value = SEUIL_FREQ_ALARME;
+  seuilFreqValeurEl.textContent = SEUIL_FREQ_ALARME.toFixed(1);
+  seuilAmpSlider.value = SEUIL_AMP_ALARME;
+  seuilAmpValeurEl.textContent = SEUIL_AMP_ALARME.toFixed(2);
+}
+
+seuilFreqSlider.addEventListener('input', () => {
+  SEUIL_FREQ_ALARME = parseFloat(seuilFreqSlider.value);
+  seuilFreqValeurEl.textContent = SEUIL_FREQ_ALARME.toFixed(1);
+  sauvegarderSeuils();
+});
+
+seuilAmpSlider.addEventListener('input', () => {
+  SEUIL_AMP_ALARME = parseFloat(seuilAmpSlider.value);
+  seuilAmpValeurEl.textContent = SEUIL_AMP_ALARME.toFixed(2);
+  sauvegarderSeuils();
+});
+
+// ===== Calibration : mesurer le bruit ambiant et ajuster le seuil d'amplitude =====
+function calibrerBruitAmbiant() {
+  if (!actif) {
+    erreurEl.style.color = '';
+    erreurEl.textContent = 'يجب تشغيل الكاشف أولاً للمعايرة';
+    return;
+  }
+  const echantillonsCalibration = [];
+  btnCalibrer.disabled = true;
+  btnCalibrer.textContent = '📡 جارٍ القياس...';
+  erreurEl.style.color = '';
+  erreurEl.textContent = '';
+  const debut = performance.now();
+
+  const intervalId = setInterval(() => {
+    const dernier = historique[historique.length - 1];
+    if (dernier && dernier.amp !== null) echantillonsCalibration.push(dernier.amp);
+
+    if (performance.now() - debut >= 3000) {
+      clearInterval(intervalId);
+      btnCalibrer.disabled = false;
+      btnCalibrer.textContent = '📡 قياس الضجيج المحيط ومعايرة العتبة';
+
+      if (echantillonsCalibration.length < 3) {
+        erreurEl.style.color = '';
+        erreurEl.textContent = 'تعذرت المعايرة، حاول مجدداً';
+        return;
+      }
+
+      const moyenne = echantillonsCalibration.reduce((s, v) => s + v, 0) / echantillonsCalibration.length;
+      const nouveauSeuil = Math.min(1, Math.max(0.05, +(moyenne * 2.5).toFixed(2)));
+      SEUIL_AMP_ALARME = nouveauSeuil;
+      seuilAmpSlider.value = nouveauSeuil;
+      seuilAmpValeurEl.textContent = nouveauSeuil.toFixed(2);
+      sauvegarderSeuils();
+
+      erreurEl.style.color = '#7CFC7C';
+      erreurEl.textContent = 'تمت المعايرة ✓ العتبة الجديدة: ' + nouveauSeuil.toFixed(2) + ' m/s²';
+    }
+  }, 300);
+}
+btnCalibrer.addEventListener('click', calibrerBruitAmbiant);
+
+// ===== Compteur quotidien de détections =====
+function mettreAJourAffichageCompteur() {
+  let texte = 'عدد القطارات اليوم: ' + compteurDetections;
+  if (dernierDetectionT) {
+    const minutes = Math.floor((Date.now() - dernierDetectionT) / 60000);
+    texte += ' — آخر اكتشاف: ' + (minutes < 1 ? 'الآن' : 'قبل ' + minutes + ' د');
+  }
+  compteurBlocEl.textContent = texte;
+}
+
+function chargerCompteur() {
+  const aujourdHui = new Date().toDateString();
+  try {
+    const dateSauvegardee = localStorage.getItem('kachef_compteur_date');
+    if (dateSauvegardee === aujourdHui) {
+      compteurDetections = parseInt(localStorage.getItem('kachef_compteur_valeur') || '0', 10);
+      const dernier = localStorage.getItem('kachef_dernier_t');
+      if (dernier) dernierDetectionT = parseInt(dernier, 10);
+    } else {
+      compteurDetections = 0;
+      localStorage.setItem('kachef_compteur_date', aujourdHui);
+      localStorage.setItem('kachef_compteur_valeur', '0');
+    }
+  } catch (e) { console.warn('Lecture compteur impossible:', e); }
+  mettreAJourAffichageCompteur();
+}
+
+function incrementerCompteur() {
+  compteurDetections++;
+  dernierDetectionT = Date.now();
+  try {
+    localStorage.setItem('kachef_compteur_date', new Date().toDateString());
+    localStorage.setItem('kachef_compteur_valeur', String(compteurDetections));
+    localStorage.setItem('kachef_dernier_t', String(dernierDetectionT));
+  } catch (e) { console.warn('Sauvegarde compteur impossible:', e); }
+  mettreAJourAffichageCompteur();
+}
+
+// ===== Journal des détections =====
+function rendreJournal() {
+  if (journalDetections.length === 0) {
+    journalListeEl.innerHTML = '<div class="journal-vide">لا يوجد اكتشاف بعد</div>';
+    return;
+  }
+  journalListeEl.innerHTML = journalDetections.slice().reverse().map(entree => {
+    const heure = entree.heure.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    return '<div class="journal-item"><span class="journal-heure">' + heure + '</span>' +
+      '<span class="journal-valeurs">' + entree.freq.toFixed(1) + 'Hz / ' + entree.amp.toFixed(2) + 'm/s²</span></div>';
+  }).join('');
+}
+
+function ajouterAuJournal(freq, amp) {
+  journalDetections.push({heure: new Date(), freq: freq, amp: amp});
+  if (journalDetections.length > JOURNAL_MAX) journalDetections.shift();
+  rendreJournal();
+}
+
+function exporterCSV() {
+  if (journalDetections.length === 0) {
+    erreurEl.style.color = '';
+    erreurEl.textContent = 'لا يوجد سجل لتصديره';
+    return;
+  }
+  let csv = 'الوقت,التردد (Hz),السعة (m/s²)\n';
+  journalDetections.forEach(entree => {
+    csv += entree.heure.toLocaleString('ar-TN') + ',' + entree.freq.toFixed(2) + ',' + entree.amp.toFixed(2) + '\n';
+  });
+  const blob = new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'سجل_كاشف_الاهتزاز_' + Date.now() + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+btnExportCSV.addEventListener('click', exporterCSV);
+
+function effacerJournal() {
+  journalDetections = [];
+  rendreJournal();
+}
+btnEffacerJournal.addEventListener('click', effacerJournal);
+
+// ===== Notifications navigateur =====
+async function demanderPermissionNotification() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    try { await Notification.requestPermission(); } catch (e) { console.warn('Permission notification refusée:', e); }
+  }
+}
+
+function envoyerNotification(texte) {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') {
+    try {
+      new Notification('🚆 كاشف الاهتزاز', {body: texte, icon: iconeURLGlobale, tag: 'alerte-train'});
+    } catch (e) { console.warn('Notification impossible:', e); }
+  }
+}
+
 function jouerAlerteSonore() {
   try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const maintenant = audioCtx.currentTime;
     [0, 0.3, 0.6].forEach(decalage => {
       const osc = audioCtx.createOscillator();
@@ -877,6 +1229,15 @@ function verifierAlerteTrain(freqActuel, ampActuel) {
     dernierAlerteT = maintenant;
     alerteBandeauEl.className = 'alerte-bandeau actif';
     jouerAlerteSonore();
+
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
+
+    const texteAlerte = 'تردد: ' + (freqActuel !== null ? freqActuel.toFixed(1) : '--') + ' Hz — سعة: ' + (ampActuel !== null ? ampActuel.toFixed(2) : '--') + ' m/s²';
+    envoyerNotification(texteAlerte);
+
+    incrementerCompteur();
+    if (freqActuel !== null && ampActuel !== null) ajouterAuJournal(freqActuel, ampActuel);
+
     setTimeout(() => {
       alerteBandeauEl.className = 'alerte-bandeau';
     }, 8000);
@@ -890,7 +1251,13 @@ function gererMouvement(event) {
   const x = acc.x || 0;
   const y = acc.y || 0;
   const z = acc.z || 0;
-  const magnitude = Math.sqrt(x*x + y*y + z*z);
+  const magnitudeBrute = Math.sqrt(x*x + y*y + z*z);
+
+  // Lissage passe-bas léger : réduit le bruit de la main sans écraser l'oscillation ~5Hz
+  if (magnitudeLissee === null) magnitudeLissee = magnitudeBrute;
+  magnitudeLissee = ALPHA_LISSAGE * magnitudeBrute + (1 - ALPHA_LISSAGE) * magnitudeLissee;
+  const magnitude = magnitudeLissee;
+
   const maintenant = performance.now();
 
   buffer.push({t: maintenant, v: magnitude});
@@ -934,6 +1301,7 @@ function gererMouvement(event) {
 }
 
 async function demarrer() {
+  erreurEl.style.color = '';
   erreurEl.textContent = '';
 
   if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
@@ -949,12 +1317,23 @@ async function demarrer() {
     }
   }
 
+  demanderPermissionNotification();
+
+  if ('wakeLock' in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+    } catch (e) {
+      console.warn('Wake Lock impossible:', e);
+    }
+  }
+
   window.addEventListener('devicemotion', gererMouvement);
   actif = true;
   btn.textContent = 'إيقاف الكاشف';
   statut.className = 'statut gris';
   statut.textContent = 'جاري القياس...';
   historique = [];
+  magnitudeLissee = null;
   redimensionnerCanvas();
   redimensionnerGrilles();
 }
@@ -963,6 +1342,11 @@ function arreter() {
   window.removeEventListener('devicemotion', gererMouvement);
   actif = false;
   buffer = [];
+  magnitudeLissee = null;
+  if (wakeLock) {
+    wakeLock.release().catch(() => {});
+    wakeLock = null;
+  }
   btn.textContent = 'تشغيل الكاشف';
   voyant.className = 'voyant';
   freqDisplay.innerHTML = '--<span> Hz</span>';
@@ -996,6 +1380,21 @@ btn.addEventListener('click', () => {
     arreter();
   }
 });
+
+document.addEventListener('visibilitychange', async () => {
+  if (actif && document.visibilityState === 'visible' && 'wakeLock' in navigator && !wakeLock) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+    } catch (e) {
+      console.warn('Wake Lock impossible:', e);
+    }
+  }
+});
+
+chargerSeuils();
+chargerCompteur();
+rendreJournal();
+setInterval(mettreAJourAffichageCompteur, 30000);
 
 redimensionnerCanvas();
 redimensionnerGrilles();
@@ -1055,6 +1454,7 @@ window.addEventListener('resize', () => {
   const iconURL = URL.createObjectURL(iconBlob);
   document.getElementById('favicon').href = iconURL;
   document.getElementById('appleIcon').href = iconURL;
+  iconeURLGlobale = iconURL;
 
   // Manifest PWA
   const manifest = {
