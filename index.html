@@ -581,6 +581,10 @@
       <label>حد السعة — ينذر فوق <span id="seuilAmpValeur">0.20</span> m/s²</label>
       <input type="range" id="seuilAmpSlider" min="0.05" max="1" step="0.01" value="0.2">
     </div>
+    <div class="reglage-item">
+      <label>حد الارتباط (Pearson) — ينذر عند <span id="seuilCorrValeur">-0.62</span> أو أقوى (أكثر سلبية)</label>
+      <input type="range" id="seuilCorrSlider" min="-1" max="-0.1" step="0.01" value="-0.62">
+    </div>
     <button id="btnCalibrer">📡 قياس الضجيج المحيط ومعايرة العتبة</button>
   </div>
 
@@ -634,6 +638,8 @@ const seuilFreqSlider = document.getElementById('seuilFreqSlider');
 const seuilFreqValeurEl = document.getElementById('seuilFreqValeur');
 const seuilAmpSlider = document.getElementById('seuilAmpSlider');
 const seuilAmpValeurEl = document.getElementById('seuilAmpValeur');
+const seuilCorrSlider = document.getElementById('seuilCorrSlider');
+const seuilCorrValeurEl = document.getElementById('seuilCorrValeur');
 const btnCalibrer = document.getElementById('btnCalibrer');
 const journalListeEl = document.getElementById('journalListe');
 const btnExportCSV = document.getElementById('btnExportCSV');
@@ -656,6 +662,10 @@ const SEUIL_HAUSSE_AMP = 0.15;   // m/s² : hausse minimale jugée significative
 const ALERTE_COOLDOWN_MS = 15000; // ne pas re-sonner avant 15s
 let SEUIL_FREQ_ALARME = 3.5;   // Hz : en dessous de ça, alarme directe (ajustable)
 let SEUIL_AMP_ALARME = 0.2;    // m/s² : au dessus de ça, alarme directe (ajustable)
+let SEUIL_CORR_ALARME = -0.62; // corrélation de Pearson entre les variations (ΔHz, Δm/s²) : alarme si r <= ce seuil (corrélation négative aussi forte ou plus forte, ajustable)
+const NB_POINTS_CORR_MIN = 10;     // nombre minimal de points valides avant de calculer la corrélation
+const FENETRE_CORR_MS = 3000;      // fenêtre glissante pour le calcul — réduite pour réagir plus vite (train en approche réelle)
+const AMP_DELTA_MIN_MOYEN = 0.02;  // m/s² : plancher sur l'amplitude moyenne des variations — filtre le bruit pur (tremblement de main) où freq/amp bougent à peine
 let dernierAlerteT = 0;
 let audioCtx = null;
 
@@ -995,6 +1005,40 @@ function mettreAJourMatrice(freq, amp) {
   matriceSignificationEl.textContent = message.texte + ' (' + ZONES_FREQ[i].nom + ' × ' + ZONES_AMP[j].nom + ')';
   matriceSignificationEl.style.color = message.couleur;
   matriceSignificationEl.style.borderRight = '4px solid ' + message.couleur;
+
+  verifierAlerteZoneDanger(i, j);
+}
+
+// ===== Alarme indépendante — زاوية الجدول المتقاطع أسفل يسار (9 خانات) =====
+// Zone : lignes يقترب/قريب/قريب جداً (i>=2) × colonnes يقترب/قريب/قوي جداً (j>=2) — les 9 cases
+// les plus sévères du tableau croisé Hz × m/s². Indépendante de l'alarme corrélation.
+let dernierAlerteZoneT = 0;
+const ZONE_ALARME_COOLDOWN_MS = 15000;
+
+function verifierAlerteZoneDanger(i, j) {
+  const zoneDanger = i >= 2 && j >= 2;
+  if (!zoneDanger) return;
+
+  const maintenant = performance.now();
+  if (maintenant - dernierAlerteZoneT <= ZONE_ALARME_COOLDOWN_MS) return;
+  dernierAlerteZoneT = maintenant;
+
+  jouerAlerteSonore();
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
+  direAttentionTrain();
+}
+
+function direAttentionTrain() {
+  if (!('speechSynthesis' in window)) return;
+  try {
+    const u = new SpeechSynthesisUtterance('انتبه، قطار');
+    u.lang = 'ar-SA';
+    u.rate = 1;
+    u.volume = 1;
+    speechSynthesis.speak(u);
+  } catch (e) {
+    console.warn('Synthèse vocale impossible:', e);
+  }
 }
 
 
@@ -1003,6 +1047,7 @@ function sauvegarderSeuils() {
   try {
     localStorage.setItem('kachef_seuil_freq', String(SEUIL_FREQ_ALARME));
     localStorage.setItem('kachef_seuil_amp', String(SEUIL_AMP_ALARME));
+    localStorage.setItem('kachef_seuil_corr', String(SEUIL_CORR_ALARME));
   } catch (e) { console.warn('Sauvegarde seuils impossible:', e); }
 }
 
@@ -1010,13 +1055,17 @@ function chargerSeuils() {
   try {
     const f = localStorage.getItem('kachef_seuil_freq');
     const a = localStorage.getItem('kachef_seuil_amp');
+    const c = localStorage.getItem('kachef_seuil_corr');
     if (f !== null) SEUIL_FREQ_ALARME = parseFloat(f);
     if (a !== null) SEUIL_AMP_ALARME = parseFloat(a);
+    if (c !== null) SEUIL_CORR_ALARME = parseFloat(c);
   } catch (e) { console.warn('Lecture seuils impossible:', e); }
   seuilFreqSlider.value = SEUIL_FREQ_ALARME;
   seuilFreqValeurEl.textContent = SEUIL_FREQ_ALARME.toFixed(1);
   seuilAmpSlider.value = SEUIL_AMP_ALARME;
   seuilAmpValeurEl.textContent = SEUIL_AMP_ALARME.toFixed(2);
+  seuilCorrSlider.value = SEUIL_CORR_ALARME;
+  seuilCorrValeurEl.textContent = SEUIL_CORR_ALARME.toFixed(2);
 }
 
 seuilFreqSlider.addEventListener('input', () => {
@@ -1028,6 +1077,12 @@ seuilFreqSlider.addEventListener('input', () => {
 seuilAmpSlider.addEventListener('input', () => {
   SEUIL_AMP_ALARME = parseFloat(seuilAmpSlider.value);
   seuilAmpValeurEl.textContent = SEUIL_AMP_ALARME.toFixed(2);
+  sauvegarderSeuils();
+});
+
+seuilCorrSlider.addEventListener('input', () => {
+  SEUIL_CORR_ALARME = parseFloat(seuilCorrSlider.value);
+  seuilCorrValeurEl.textContent = SEUIL_CORR_ALARME.toFixed(2);
   sauvegarderSeuils();
 });
 
@@ -1176,54 +1231,91 @@ function envoyerNotification(texte) {
   }
 }
 
+// ===== Alarme sonore : sirène forte et vive (aiguë, alternance rapide) =====
+let alerteOsc = null, alerteGain = null, alerteSirenTimer = null;
+const ALERTE_DUREE_MS = 8000; // doit correspondre au setTimeout qui cache le bandeau
+
+function arreterAlerteSonore() {
+  if (alerteSirenTimer) { clearInterval(alerteSirenTimer); alerteSirenTimer = null; }
+  try {
+    if (alerteOsc) { alerteOsc.stop(); alerteOsc.disconnect(); alerteOsc = null; }
+    if (alerteGain) { alerteGain.disconnect(); alerteGain = null; }
+  } catch (e) {}
+}
+
 function jouerAlerteSonore() {
   try {
-    const maintenant = audioCtx.currentTime;
-    [0, 0.3, 0.6].forEach(decalage => {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'square';
-      osc.frequency.value = 880;
-      gain.gain.setValueAtTime(0.0001, maintenant + decalage);
-      gain.gain.exponentialRampToValueAtTime(0.3, maintenant + decalage + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, maintenant + decalage + 0.22);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start(maintenant + decalage);
-      osc.stop(maintenant + decalage + 0.25);
-    });
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    arreterAlerteSonore(); // coupe une éventuelle sirène précédente encore active
+
+    alerteGain = audioCtx.createGain();
+    alerteGain.gain.value = 0.9; // fort
+    alerteGain.connect(audioCtx.destination);
+
+    alerteOsc = audioCtx.createOscillator();
+    alerteOsc.type = 'square'; // timbre agressif/vif plutôt que sine (doux)
+    alerteOsc.frequency.value = 1200;
+    alerteOsc.connect(alerteGain);
+    alerteOsc.start();
+
+    // Alternance rapide entre deux fréquences aiguës = sirène perçante
+    alerteSirenTimer = setInterval(() => {
+      if (!alerteOsc) return;
+      alerteOsc.frequency.value = (alerteOsc.frequency.value < 1500) ? 1900 : 1200;
+    }, 110);
+
+    setTimeout(arreterAlerteSonore, ALERTE_DUREE_MS);
   } catch (e) {
     console.warn('Alerte sonore impossible:', e);
   }
 }
 
+function calculerPearson(x, y) {
+  const n = x.length;
+  if (n === 0) return null;
+  const mx = x.reduce((s, v) => s + v, 0) / n;
+  const my = y.reduce((s, v) => s + v, 0) / n;
+  let numerateur = 0, sommeCarresX = 0, sommeCarresY = 0;
+  for (let i = 0; i < n; i++) {
+    const dx = x[i] - mx, dy = y[i] - my;
+    numerateur += dx * dy;
+    sommeCarresX += dx * dx;
+    sommeCarresY += dy * dy;
+  }
+  if (sommeCarresX === 0 || sommeCarresY === 0) return null;
+  return numerateur / Math.sqrt(sommeCarresX * sommeCarresY);
+}
+
+function calculerCorrelationVariations() {
+  // Corrélation de Pearson entre les variations consécutives (ΔHz, Δm/s²), sur une fenêtre
+  // glissante récente (pas tout l'historique) pour rester cohérent avec un seul événement physique.
+  const maintenant = historique[historique.length - 1].t;
+  const points = historique.filter(p => (maintenant - p.t) <= FENETRE_CORR_MS && p.freq !== null && p.amp !== null);
+  if (points.length < NB_POINTS_CORR_MIN) return null;
+
+  const dFreq = [], dAmp = [];
+  for (let i = 1; i < points.length; i++) {
+    dFreq.push(points[i].freq - points[i-1].freq);
+    dAmp.push(points[i].amp - points[i-1].amp);
+  }
+
+  // Garde-fou : si les variations d'amplitude sont trop faibles en moyenne, on est dans le bruit
+  // (tremblement de main) — pas assez de signal réel pour qu'une corrélation veuille dire quelque chose.
+  const ampDeltaMoyen = dAmp.reduce((s, v) => s + Math.abs(v), 0) / dAmp.length;
+  if (ampDeltaMoyen < AMP_DELTA_MIN_MOYEN) return null;
+
+  return calculerPearson(dFreq, dAmp);
+}
+
 function verifierAlerteTrain(freqActuel, ampActuel) {
   const maintenant = historique[historique.length - 1].t;
 
-  // Condition 1 : seuil direct sur les valeurs instantanées
-  const conditionSeuil = freqActuel !== null && ampActuel !== null &&
-    freqActuel < SEUIL_FREQ_ALARME && ampActuel > SEUIL_AMP_ALARME;
-
-  // Condition 2 : tendance (fréquence qui baisse + amplitude qui monte)
-  let conditionTendance = false;
-  const recents = historique.filter(p => maintenant - p.t <= 2000 && p.freq !== null && p.amp !== null);
-  const anciens = historique.filter(p => maintenant - p.t >= 3000 && maintenant - p.t <= 5000 && p.freq !== null && p.amp !== null);
-
-  if (recents.length >= 3 && anciens.length >= 3) {
-    const moyenne = (liste, cle) => liste.reduce((s, p) => s + p[cle], 0) / liste.length;
-
-    const freqRecent = moyenne(recents, 'freq');
-    const freqAncien = moyenne(anciens, 'freq');
-    const ampRecent = moyenne(recents, 'amp');
-    const ampAncien = moyenne(anciens, 'amp');
-
-    const baisseFreq = freqAncien - freqRecent; // positif si ça baisse
-    const hausseAmp = ampRecent - ampAncien;    // positif si ça monte
-
-    conditionTendance = baisseFreq >= SEUIL_BAISSE_FREQ && hausseAmp >= SEUIL_HAUSSE_AMP;
-  }
-
-  const conditionAlerte = conditionSeuil || conditionTendance;
+  // Seule condition d'alarme : corrélation de Pearson entre les variations (ΔHz, Δm/s²).
+  // Une baisse de fréquence accompagnée d'une hausse d'amplitude donne une corrélation négative.
+  // Alarme si cette corrélation négative est aussi forte ou plus forte que SEUIL_CORR_ALARME (ex: -0.62).
+  // Si elle est plus faible (moins négative, nulle ou positive), pas d'alarme.
+  const correlationVariations = calculerCorrelationVariations();
+  const conditionAlerte = correlationVariations !== null && correlationVariations <= SEUIL_CORR_ALARME;
 
   if (conditionAlerte && (maintenant - dernierAlerteT) > ALERTE_COOLDOWN_MS) {
     dernierAlerteT = maintenant;
