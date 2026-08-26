@@ -574,8 +574,8 @@
   <div class="reglages-bloc">
     <div class="reglages-titre">إعدادات التنبيه</div>
     <div class="reglage-item">
-      <label>حد التردد — ينذر تحت <span id="seuilFreqValeur">3.5</span> Hz</label>
-      <input type="range" id="seuilFreqSlider" min="1" max="5" step="0.1" value="3.5">
+      <label>حد التردد — ينذر تحت <span id="seuilFreqValeur">5.5</span> Hz</label>
+      <input type="range" id="seuilFreqSlider" min="1" max="6" step="0.1" value="5.5">
     </div>
     <div class="reglage-item">
       <label>حد السعة — ينذر فوق <span id="seuilAmpValeur">0.20</span> m/s²</label>
@@ -660,7 +660,7 @@ let ampMaxGraphique = 1; // échelle auto-ajustée pour l'axe amplitude
 const SEUIL_BAISSE_FREQ = 0.3;   // Hz : baisse minimale jugée significative
 const SEUIL_HAUSSE_AMP = 0.15;   // m/s² : hausse minimale jugée significative
 const ALERTE_COOLDOWN_MS = 15000; // ne pas re-sonner avant 15s
-let SEUIL_FREQ_ALARME = 3.5;   // Hz : en dessous de ça, alarme directe (ajustable)
+let SEUIL_FREQ_ALARME = 5.5;   // Hz : en dessous de ça, alarme directe (ajustable)
 let SEUIL_AMP_ALARME = 0.2;    // m/s² : au dessus de ça, alarme directe (ajustable)
 let SEUIL_CORR_ALARME = -0.62; // corrélation de Pearson entre les variations (ΔHz, Δm/s²) : alarme si r <= ce seuil (corrélation négative aussi forte ou plus forte, ajustable)
 const NB_POINTS_CORR_MIN = 10;     // nombre minimal de points valides avant de calculer la corrélation
@@ -1005,27 +1005,6 @@ function mettreAJourMatrice(freq, amp) {
   matriceSignificationEl.textContent = message.texte + ' (' + ZONES_FREQ[i].nom + ' × ' + ZONES_AMP[j].nom + ')';
   matriceSignificationEl.style.color = message.couleur;
   matriceSignificationEl.style.borderRight = '4px solid ' + message.couleur;
-
-  verifierAlerteZoneDanger(i, j);
-}
-
-// ===== Alarme indépendante — زاوية الجدول المتقاطع أسفل يسار (9 خانات) =====
-// Zone : lignes يقترب/قريب/قريب جداً (i>=2) × colonnes يقترب/قريب/قوي جداً (j>=2) — les 9 cases
-// les plus sévères du tableau croisé Hz × m/s². Indépendante de l'alarme corrélation.
-let dernierAlerteZoneT = 0;
-const ZONE_ALARME_COOLDOWN_MS = 15000;
-
-function verifierAlerteZoneDanger(i, j) {
-  const zoneDanger = i >= 2 && j >= 2;
-  if (!zoneDanger) return;
-
-  const maintenant = performance.now();
-  if (maintenant - dernierAlerteZoneT <= ZONE_ALARME_COOLDOWN_MS) return;
-  dernierAlerteZoneT = maintenant;
-
-  jouerAlerteSonore();
-  if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
-  direAttentionTrain();
 }
 
 function direAttentionTrain() {
@@ -1310,17 +1289,23 @@ function calculerCorrelationVariations() {
 function verifierAlerteTrain(freqActuel, ampActuel) {
   const maintenant = historique[historique.length - 1].t;
 
-  // Seule condition d'alarme : corrélation de Pearson entre les variations (ΔHz, Δm/s²).
+  // Condition 1 : corrélation de Pearson entre les variations (ΔHz, Δm/s²).
   // Une baisse de fréquence accompagnée d'une hausse d'amplitude donne une corrélation négative.
   // Alarme si cette corrélation négative est aussi forte ou plus forte que SEUIL_CORR_ALARME (ex: -0.62).
-  // Si elle est plus faible (moins négative, nulle ou positive), pas d'alarme.
   const correlationVariations = calculerCorrelationVariations();
-  const conditionAlerte = correlationVariations !== null && correlationVariations <= SEUIL_CORR_ALARME;
+  const conditionCorrelation = correlationVariations !== null && correlationVariations <= SEUIL_CORR_ALARME;
+
+  // Condition directe : fréquence sous le seuil ET amplitude au dessus du seuil, en même temps.
+  const conditionSeuils = freqActuel !== null && ampActuel !== null
+    && freqActuel < SEUIL_FREQ_ALARME && ampActuel > SEUIL_AMP_ALARME;
+
+  const conditionAlerte = conditionCorrelation && conditionSeuils;
 
   if (conditionAlerte && (maintenant - dernierAlerteT) > ALERTE_COOLDOWN_MS) {
     dernierAlerteT = maintenant;
     alerteBandeauEl.className = 'alerte-bandeau actif';
     jouerAlerteSonore();
+    direAttentionTrain();
 
     if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
 
