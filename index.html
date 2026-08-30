@@ -610,6 +610,17 @@
       <button id="btnEffacerJournal">🗑 مسح السجل</button>
     </div>
   </div>
+
+  <div class="journal-bloc">
+    <div class="journal-titre">التسجيل الكامل (Hz + m/s² وتغيّرهما)</div>
+    <div class="journal-liste" id="enregistrementListe">
+      <div class="journal-vide">لم يبدأ أي تسجيل بعد</div>
+    </div>
+    <div class="journal-actions">
+      <button id="btnExportEnregistrement">⬇ تنزيل التسجيل الكامل CSV</button>
+      <button id="btnEffacerEnregistrement">🗑 مسح التسجيل</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -644,6 +655,9 @@ const btnCalibrer = document.getElementById('btnCalibrer');
 const journalListeEl = document.getElementById('journalListe');
 const btnExportCSV = document.getElementById('btnExportCSV');
 const btnEffacerJournal = document.getElementById('btnEffacerJournal');
+const enregistrementListeEl = document.getElementById('enregistrementListe');
+const btnExportEnregistrement = document.getElementById('btnExportEnregistrement');
+const btnEffacerEnregistrement = document.getElementById('btnEffacerEnregistrement');
 
 let actif = false;
 let buffer = [];
@@ -653,6 +667,10 @@ let dernierUpdate = 0;
 // ===== Historique pour le graphique (indépendant du buffer de calcul) =====
 let historique = []; // {t, freq, amp}
 const HISTORIQUE_MS = 30000; // 30 secondes affichées sur le graphique
+
+// ===== Enregistrement complet de la session (démarre à l'appui sur تشغيل الكاشف) =====
+let enregistrementComplet = []; // {heure, freq, amp, deltaFreq, deltaAmp} — tous les points, pas que les alertes
+const ENREGISTREMENT_AFFICHAGE_MAX = 300; // limite d'items affichés dans la liste (le CSV, lui, contient tout)
 const FREQ_MAX_GRAPHIQUE = 10; // échelle fixe pour l'axe Hz
 let ampMaxGraphique = 1; // échelle auto-ajustée pour l'axe amplitude
 
@@ -1193,6 +1211,51 @@ function effacerJournal() {
 }
 btnEffacerJournal.addEventListener('click', effacerJournal);
 
+// ===== Enregistrement complet de la session (toutes les valeurs, pas que les alertes) =====
+function ajouterAEnregistrement(point) {
+  enregistrementComplet.push(point);
+  const videEl = enregistrementListeEl.querySelector('.journal-vide');
+  if (videEl) videEl.remove();
+  const heure = point.heure.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  const signe = (v) => (v >= 0 ? '+' : '') + v.toFixed(2);
+  const div = document.createElement('div');
+  div.className = 'journal-item';
+  div.innerHTML = '<span class="journal-heure">' + heure + '</span>' +
+    '<span class="journal-valeurs">' + point.freq.toFixed(1) + 'Hz(' + signe(point.deltaFreq) + ') / ' + point.amp.toFixed(2) + 'm/s²(' + signe(point.deltaAmp) + ')</span>';
+  enregistrementListeEl.insertBefore(div, enregistrementListeEl.firstChild);
+  while (enregistrementListeEl.children.length > ENREGISTREMENT_AFFICHAGE_MAX) {
+    enregistrementListeEl.removeChild(enregistrementListeEl.lastChild);
+  }
+}
+
+function exporterEnregistrement() {
+  if (enregistrementComplet.length === 0) {
+    erreurEl.style.color = '';
+    erreurEl.textContent = 'لا يوجد تسجيل لتصديره';
+    return;
+  }
+  let csv = 'الوقت,التردد (Hz),تغيّر التردد (Δ Hz),السعة (m/s²),تغيّر السعة (Δ m/s²)\n';
+  enregistrementComplet.forEach(p => {
+    csv += p.heure.toLocaleString('ar-TN') + ',' + p.freq.toFixed(2) + ',' + p.deltaFreq.toFixed(2) + ',' + p.amp.toFixed(2) + ',' + p.deltaAmp.toFixed(2) + '\n';
+  });
+  const blob = new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'تسجيل_كامل_كاشف_الاهتزاز_' + Date.now() + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+btnExportEnregistrement.addEventListener('click', exporterEnregistrement);
+
+function effacerEnregistrement() {
+  enregistrementComplet = [];
+  enregistrementListeEl.innerHTML = '<div class="journal-vide">لم يبدأ أي تسجيل بعد</div>';
+}
+btnEffacerEnregistrement.addEventListener('click', effacerEnregistrement);
+
 // ===== Notifications navigateur =====
 async function demanderPermissionNotification() {
   if (!('Notification' in window)) return;
@@ -1367,6 +1430,12 @@ function gererMouvement(event) {
     statut.textContent = 'خارج النطاق';
   }
 
+  // Enregistrement complet de la session : les deux courbes (Hz / m/s²) en parallèle + leur changement
+  const dernierPointEnr = enregistrementComplet[enregistrementComplet.length - 1];
+  const deltaFreq = dernierPointEnr ? (freq - dernierPointEnr.freq) : 0;
+  const deltaAmp = dernierPointEnr ? (amplitude - dernierPointEnr.amp) : 0;
+  ajouterAEnregistrement({heure: new Date(), freq: freq, amp: amplitude, deltaFreq: deltaFreq, deltaAmp: deltaAmp});
+
   // Enregistrement pour le graphique + vérification d'alerte train
   historique.push({t: maintenant, freq: freq, amp: amplitude});
   historique = historique.filter(p => maintenant - p.t <= HISTORIQUE_MS);
@@ -1411,6 +1480,8 @@ async function demarrer() {
   statut.textContent = 'جاري القياس...';
   historique = [];
   magnitudeLissee = null;
+  enregistrementComplet = [];
+  enregistrementListeEl.innerHTML = '<div class="journal-vide">جارٍ التسجيل...</div>';
   redimensionnerCanvas();
   redimensionnerGrilles();
 }
