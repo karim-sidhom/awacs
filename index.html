@@ -695,6 +695,11 @@ const EFFONDREMENT_BAISSE_MIN = 0.15; // m/s² : chute minimale entre deux point
 const EFFONDREMENT_FENETRE_MS = 1500; // on cherche l'effondrement dans les X ms les plus récents
 const HZ_OSCILLATION_MIN_INVERSIONS = 3; // nb minimal de changements de sens du Hz pendant le plateau (aspect sinusoïdal)
 
+// ===== Signature train n°3 : Chapeau d'amplitude (saut ×4/3) + palier de fréquence (multiples de 0,25 Hz) =====
+const CHAPEAU_AMP_RATIO_MIN = 4 / 3;   // ΔA/A >= 4/3 (+133,33%) entre deux échantillons consécutifs
+const PALIER_FREQ_PAS = 0.25;          // Hz : les paliers valides sont des multiples de 0,25 Hz
+const PALIER_FREQ_TOLERANCE = 0.05;    // Hz : tolérance de mesure autour du palier exact
+
 // ===== Wake Lock (empêcher l'écran de s'éteindre pendant la mesure) =====
 let wakeLock = null;
 
@@ -1401,16 +1406,41 @@ function detecterSignaturePlateauEffondrement() {
   return inversions >= HZ_OSCILLATION_MIN_INVERSIONS;
 }
 
+function detecterChapeauAmplitude() {
+  // Signature validée : bond relatif d'amplitude ΔA/A = 4/3 (>= +133,33%) entre deux échantillons
+  // consécutifs, simultané à une chute de fréquence Δf s'inscrivant sur un palier multiple de 0,25 Hz.
+  if (historique.length < 2) return false;
+  const actuel = historique[historique.length - 1];
+  const precedent = historique[historique.length - 2];
+
+  if (precedent.amp === null || actuel.amp === null || precedent.amp <= 0) return false;
+  if (precedent.freq === null || actuel.freq === null) return false;
+
+  // 1) Chapeau d'amplitude : bond relatif >= 4/3 (+133,33%)
+  const deltaA = actuel.amp - precedent.amp;
+  const ratioA = deltaA / precedent.amp;
+  const conditionAmplitude = ratioA >= CHAPEAU_AMP_RATIO_MIN;
+
+  // 2) Palier de fréquence : chute s'inscrivant sur un multiple de 0,25 Hz (-0,25 / -0,50 / -0,75 / ...)
+  const deltaF = actuel.freq - precedent.freq;
+  const n = Math.round(deltaF / PALIER_FREQ_PAS);
+  const surPalier = Math.abs(deltaF - (n * PALIER_FREQ_PAS)) <= PALIER_FREQ_TOLERANCE;
+  const conditionFrequence = deltaF < 0 && n !== 0 && surPalier;
+
+  return conditionAmplitude && conditionFrequence;
+}
+
 function verifierAlerteTrain(freqActuel, ampActuel) {
   const maintenant = historique[historique.length - 1].t;
 
-  // Ancienne condition (corrélation + seuils) désactivée sur demande — ne déclenche plus l'alarme.
-  // Les fonctions et sliders de seuils restent en place mais ne sont plus utilisés ici.
+  // Anciennes conditions (corrélation + seuils, puis plateau/effondrement) désactivées sur demande —
+  // ne déclenchent plus l'alarme. Les fonctions et sliders de seuils restent en place mais ne sont
+  // plus utilisés ici.
 
-  // Seule condition active : signature Hz sinusoïdal + plateau m/s² 3-4s + effondrement
-  const conditionSignaturePlateau = detecterSignaturePlateauEffondrement();
+  // Seule condition active : chapeau d'amplitude (×4/3) + palier de fréquence (multiple de 0,25 Hz)
+  const conditionChapeauAmplitude = detecterChapeauAmplitude();
 
-  if (conditionSignaturePlateau && (maintenant - dernierAlerteT) > ALERTE_COOLDOWN_MS) {
+  if (conditionChapeauAmplitude && (maintenant - dernierAlerteT) > ALERTE_COOLDOWN_MS) {
     dernierAlerteT = maintenant;
     alerteBandeauEl.className = 'alerte-bandeau actif';
     jouerAlerteSonore();
