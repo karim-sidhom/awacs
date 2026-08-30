@@ -687,6 +687,14 @@ const AMP_DELTA_MIN_MOYEN = 0.02;  // m/s² : plancher sur l'amplitude moyenne d
 let dernierAlerteT = 0;
 let audioCtx = null;
 
+// ===== Signature train n°2 : Hz sinusoïdal + plateau m/s² 3-4s + effondrement =====
+const PLATEAU_DUREE_MIN_MS = 3000;    // durée minimale du plateau d'amplitude (3s)
+const PLATEAU_DUREE_MAX_MS = 4500;    // durée maximale visée (4-4.5s), tolérance de 1s au-delà
+const PLATEAU_TOLERANCE_AMP = 0.08;   // m/s² : écart max toléré entre min et max à l'intérieur du plateau
+const EFFONDREMENT_BAISSE_MIN = 0.15; // m/s² : chute minimale entre deux points consécutifs pour parler d'effondrement
+const EFFONDREMENT_FENETRE_MS = 1500; // on cherche l'effondrement dans les X ms les plus récents
+const HZ_OSCILLATION_MIN_INVERSIONS = 3; // nb minimal de changements de sens du Hz pendant le plateau (aspect sinusoïdal)
+
 // ===== Wake Lock (empêcher l'écran de s'éteindre pendant la mesure) =====
 let wakeLock = null;
 
@@ -1349,22 +1357,60 @@ function calculerCorrelationVariations() {
   return calculerPearson(dFreq, dAmp);
 }
 
+function detecterSignaturePlateauEffondrement() {
+  // Cherche : Hz qui oscille (sinusoïdal) pendant un plateau d'amplitude stable de 3-4s,
+  // suivi d'un effondrement net de l'amplitude — signature observée au passage d'un train.
+  if (historique.length < 5) return false;
+  const maintenant = historique[historique.length - 1].t;
+
+  // 1) Repérer l'effondrement le plus récent (grosse chute entre deux points consécutifs)
+  let indexEffondrement = -1;
+  for (let i = historique.length - 1; i >= 1; i--) {
+    if (maintenant - historique[i].t > EFFONDREMENT_FENETRE_MS) break;
+    const chute = historique[i - 1].amp - historique[i].amp;
+    if (chute >= EFFONDREMENT_BAISSE_MIN) { indexEffondrement = i; break; }
+  }
+  if (indexEffondrement === -1) return false;
+
+  // 2) Remonter avant l'effondrement pour mesurer le plateau (amplitude stable) qui le précède
+  const finPlateau = indexEffondrement - 1;
+  if (finPlateau < 1) return false;
+  const tFinPlateau = historique[finPlateau].t;
+  let ampMinPlateau = historique[finPlateau].amp;
+  let ampMaxPlateau = historique[finPlateau].amp;
+  let debutPlateau = finPlateau;
+  for (let i = finPlateau; i >= 0; i--) {
+    const candMin = Math.min(ampMinPlateau, historique[i].amp);
+    const candMax = Math.max(ampMaxPlateau, historique[i].amp);
+    if (candMax - candMin > PLATEAU_TOLERANCE_AMP) break;
+    ampMinPlateau = candMin; ampMaxPlateau = candMax;
+    debutPlateau = i;
+  }
+  const dureePlateau = tFinPlateau - historique[debutPlateau].t;
+  if (dureePlateau < PLATEAU_DUREE_MIN_MS || dureePlateau > PLATEAU_DUREE_MAX_MS + 1000) return false;
+
+  // 3) Vérifier que le Hz oscille (sinusoïdal) pendant ce plateau : compter les inversions de sens
+  let inversions = 0;
+  let sensPrecedent = 0;
+  for (let i = debutPlateau + 1; i <= finPlateau; i++) {
+    const d = historique[i].freq - historique[i - 1].freq;
+    const sens = d > 0 ? 1 : (d < 0 ? -1 : 0);
+    if (sens !== 0 && sensPrecedent !== 0 && sens !== sensPrecedent) inversions++;
+    if (sens !== 0) sensPrecedent = sens;
+  }
+  return inversions >= HZ_OSCILLATION_MIN_INVERSIONS;
+}
+
 function verifierAlerteTrain(freqActuel, ampActuel) {
   const maintenant = historique[historique.length - 1].t;
 
-  // Condition 1 : corrélation de Pearson entre les variations (ΔHz, Δm/s²).
-  // Une baisse de fréquence accompagnée d'une hausse d'amplitude donne une corrélation négative.
-  // Alarme si cette corrélation négative est aussi forte ou plus forte que SEUIL_CORR_ALARME (ex: -0.62).
-  const correlationVariations = calculerCorrelationVariations();
-  const conditionCorrelation = correlationVariations !== null && correlationVariations <= SEUIL_CORR_ALARME;
+  // Ancienne condition (corrélation + seuils) désactivée sur demande — ne déclenche plus l'alarme.
+  // Les fonctions et sliders de seuils restent en place mais ne sont plus utilisés ici.
 
-  // Condition directe : fréquence sous le seuil ET amplitude au dessus du seuil, en même temps.
-  const conditionSeuils = freqActuel !== null && ampActuel !== null
-    && freqActuel < SEUIL_FREQ_ALARME && ampActuel > SEUIL_AMP_ALARME;
+  // Seule condition active : signature Hz sinusoïdal + plateau m/s² 3-4s + effondrement
+  const conditionSignaturePlateau = detecterSignaturePlateauEffondrement();
 
-  const conditionAlerte = conditionCorrelation && conditionSeuils;
-
-  if (conditionAlerte && (maintenant - dernierAlerteT) > ALERTE_COOLDOWN_MS) {
+  if (conditionSignaturePlateau && (maintenant - dernierAlerteT) > ALERTE_COOLDOWN_MS) {
     dernierAlerteT = maintenant;
     alerteBandeauEl.className = 'alerte-bandeau actif';
     jouerAlerteSonore();
