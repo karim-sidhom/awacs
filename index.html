@@ -1409,6 +1409,9 @@ function detecterSignaturePlateauEffondrement() {
 function detecterChapeauAmplitude() {
   // Signature validée : bond relatif d'amplitude ΔA/A = 4/3 (>= +133,33%) entre deux échantillons
   // consécutifs, simultané à une chute de fréquence Δf s'inscrivant sur un palier multiple de 0,25 Hz.
+  // Deux planchers anti-bruit ajoutés : sans eux, un saut relatif énorme sur des valeurs microscopiques
+  // (ex: 0.03 -> 0.07 m/s²) déclenche l'alarme alors qu'il n'y a aucun train — vérifié sur les
+  // enregistrements réels (05:09:02 et 07:54:33/07:55:37 étaient de faux positifs sur du bruit plat).
   if (historique.length < 2) return false;
   const actuel = historique[historique.length - 1];
   const precedent = historique[historique.length - 2];
@@ -1421,14 +1424,20 @@ function detecterChapeauAmplitude() {
   const ratioA = deltaA / precedent.amp;
   const conditionAmplitude = ratioA >= CHAPEAU_AMP_RATIO_MIN;
 
+  // 1bis) Planchers anti-bruit : l'amplitude d'arrivée et le saut brut doivent être physiquement
+  // significatifs, pas juste un ratio énorme sur du bruit résiduel
+  const conditionPlancherAmp = actuel.amp >= SEUIL_AMP_ALARME;      // 0.2 m/s²
+  const conditionPlancherDelta = deltaA >= AMP_DELTA_MIN_MOYEN;     // 0.02 m/s²
+
   // 2) Palier de fréquence : chute s'inscrivant sur un multiple de 0,25 Hz (-0,25 / -0,50 / -0,75 / ...)
   const deltaF = actuel.freq - precedent.freq;
   const n = Math.round(deltaF / PALIER_FREQ_PAS);
   const surPalier = Math.abs(deltaF - (n * PALIER_FREQ_PAS)) <= PALIER_FREQ_TOLERANCE;
   const conditionFrequence = deltaF < 0 && n !== 0 && surPalier;
 
-  return conditionAmplitude && conditionFrequence;
+  return conditionAmplitude && conditionPlancherAmp && conditionPlancherDelta && conditionFrequence;
 }
+
 
 function verifierAlerteTrain(freqActuel, ampActuel) {
   const maintenant = historique[historique.length - 1].t;
