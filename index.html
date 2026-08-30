@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="icon" id="favicon" href="">
 <link rel="apple-touch-icon" id="appleIcon" href="">
-<link rel="manifest" id="manifestLink">
+<link rel="manifest" href="manifest.json">
 <style>
   :root{
     --bleu-profond:#020b2e;
@@ -1689,50 +1689,11 @@ window.addEventListener('resize', () => {
   document.getElementById('appleIcon').href = iconURL;
   iconeURLGlobale = iconURL;
 
-  // Manifest PWA
-  const manifest = {
-    name: "كاشف الاهتزاز",
-    short_name: "كاشف",
-    description: "كاشف اهتزاز 5-5.5Hz عبر حساس الحركة",
-    start_url: ".",
-    display: "standalone",
-    background_color: "#020b2e",
-    theme_color: "#020b2e",
-    orientation: "portrait",
-    icons: [
-      { src: iconURL, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
-    ]
-  };
-  const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-  document.getElementById('manifestLink').href = URL.createObjectURL(manifestBlob);
+  // Manifest PWA : fichier réel (manifest.json), plus de blob (bloqué par les navigateurs pour l'installabilité)
 
-  // Service worker minimal (mise en cache de la page pour usage hors-ligne)
+  // Service worker : fichier réel (sw.js), l'enregistrement depuis un blob: est refusé par les navigateurs
   if ('serviceWorker' in navigator) {
-    const swCode = `
-      const CACHE = 'kachef-ihtizaz-v1';
-      self.addEventListener('install', e => {
-        self.skipWaiting();
-      });
-      self.addEventListener('activate', e => {
-        self.clients.claim();
-      });
-      self.addEventListener('fetch', e => {
-        e.respondWith(
-          caches.open(CACHE).then(cache =>
-            cache.match(e.request).then(resp => {
-              const fetchPromise = fetch(e.request).then(networkResp => {
-                cache.put(e.request, networkResp.clone());
-                return networkResp;
-              }).catch(() => resp);
-              return resp || fetchPromise;
-            })
-          )
-        );
-      });
-    `;
-    const swBlob = new Blob([swCode], {type: 'application/javascript'});
-    const swURL = URL.createObjectURL(swBlob);
-    navigator.serviceWorker.register(swURL).catch(err => {
+    navigator.serviceWorker.register('sw.js').catch(err => {
       console.warn('Service worker non enregistré:', err);
     });
   }
